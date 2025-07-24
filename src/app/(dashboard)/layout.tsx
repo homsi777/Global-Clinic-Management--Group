@@ -51,9 +51,9 @@ export default function DashboardLayout({
 
 
   return (
-    <div dir={locale === 'ar' ? 'rtl' : 'ltr'} className={cn("bg-muted/40", locale === 'ar' && 'font-arabic')}>
+    <div dir={locale === 'ar' ? 'rtl' : 'ltr'} className={cn("bg-background", locale === 'ar' && 'font-arabic')}>
       <SidebarProvider>
-        <Sidebar variant="floating" collapsible="icon" side={locale === 'ar' ? 'right' : 'left'}>
+        <Sidebar variant="sidebar" collapsible="icon" side={locale === 'ar' ? 'right' : 'left'}>
           <SidebarInset>
             <SidebarHeader>
               <div className="flex h-14 items-center justify-center group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:justify-center">
@@ -155,4 +155,3 @@ export default function DashboardLayout({
       </SidebarProvider>
     </div>
   );
-}

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Users, MonitorPlay, Settings, CreditCard, Moon, Sun, Globe, FileText, ShoppingCart, User, Users2 } from 'lucide-react';
+import { Home, Users, MonitorPlay, Settings, CreditCard, Moon, Sun, Globe, FileText, ShoppingCart, User } from 'lucide-react';
 import { Logo } from '@/components/icons/logo';
 import {
   SidebarProvider,

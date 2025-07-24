@@ -137,24 +137,6 @@ export default function AppointmentsPage() {
     }
   };
 
-  const handleStartConsultation = async (appointmentId: string) => {
-    await updateAppointmentStatus(appointmentId, 'InConsultation');
-  }
-
-  const handleComplete = async (appointmentId: string) => {
-    await updateAppointmentStatus(appointmentId, 'Completed');
-     const appointment = appointments.find(apt => apt._id === appointmentId);
-     if(appointment) {
-        const patient = getPatientById(appointment.patientId);
-        if(patient) {
-            toast({
-                title: locale === 'ar' ? 'اكتمل الموعد' : "Appointment Completed",
-                description: locale === 'ar' ? `اكتمل موعد ${patient.patientName}.` : `The appointment for ${patient.patientName} is complete.`
-            })
-        }
-     }
-  }
-
   const PatientCard = ({ appointment }: { appointment: Appointment }) => {
     const patient = getPatientById(appointment.patientId);
     
@@ -233,24 +215,12 @@ export default function AppointmentsPage() {
             <p className="text-sm text-muted-foreground flex items-center gap-1.5"><Hash className="h-3 w-3" /> {patient.patientId}</p>
           </div>
         </div>
-        {(appointment.status === 'Waiting' || appointment.status === 'InRoom' || appointment.status === 'InConsultation') && (
+        {(appointment.status === 'Waiting') && (
             <div className="px-4 pb-4 flex justify-end gap-2">
                 {appointment.status === 'Waiting' && (
                 <Button onClick={() => handleCallClick(appointment._id)} disabled={loadingPatientId === appointment._id} size="sm">
                     <Megaphone className="ml-0 rtl:ml-2 mr-2 rtl:mr-0 h-4 w-4" />
                     {loadingPatientId === appointment._id ? (locale === 'ar' ? 'جاري الاستدعاء...' : 'Calling...') : (locale === 'ar' ? 'استدعاء' : 'Call')}
-                </Button>
-                )}
-                {appointment.status === 'InRoom' && (
-                    <Button onClick={() => handleStartConsultation(appointment._id)} size="sm">
-                        <Stethoscope className="ml-0 rtl:ml-2 mr-2 rtl:mr-0 h-4 w-4" />
-                        {locale === 'ar' ? 'بدء الفحص' : 'Start Consultation'}
-                    </Button>
-                )}
-                {appointment.status === 'InConsultation' && (
-                <Button onClick={() => handleComplete(appointment._id)} size="sm" variant="outline">
-                    <CheckCircle className="ml-0 rtl:ml-2 mr-2 rtl:mr-0 h-4 w-4" />
-                    {locale === 'ar' ? 'إنهاء' : 'Complete'}
                 </Button>
                 )}
             </div>

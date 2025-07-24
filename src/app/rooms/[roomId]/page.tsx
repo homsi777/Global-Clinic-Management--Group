@@ -37,14 +37,16 @@ function RoomDetailPageContent() {
     const patient = roomAppointment ? getPatientById(roomAppointment.patientId) : null;
     
     const handleStartConsultation = async (appointment: Appointment) => {
-        await updateAppointmentStatus(appointment._id, 'InConsultation', room?.roomNumber);
+        if (!room) return;
+        await updateAppointmentStatus(appointment._id, 'InConsultation', room.roomNumber);
         toast({
             title: locale === 'ar' ? 'بدأ الفحص' : 'Consultation Started',
         })
     }
 
     const handleCompleteConsultation = async (appointment: Appointment) => {
-        await updateAppointmentStatus(appointment._id, 'Completed', room?.roomNumber);
+        if (!room) return;
+        await updateAppointmentStatus(appointment._id, 'Completed', room.roomNumber);
         toast({
             title: locale === 'ar' ? 'اكتمل الفحص' : 'Consultation Completed',
         })
@@ -109,9 +111,9 @@ function RoomDetailPageContent() {
                            <div className="flex-1 space-y-2">
                                <h3 className="text-2xl font-bold">{patient.patientName}</h3>
                                <p className="text-muted-foreground flex items-center gap-2"><Hash className="h-4 w-4" /> {patient.patientId}</p>
-                               <p className="text-muted-foreground flex items-center gap-2"><Clock className="h-4 w-4" /> {locale === 'ar' ? 'وقت النداء:' : 'Called at:'} {new Date(roomAppointment.calledTime!).toLocaleTimeString()}</p>
+                               <p className="text-muted-foreground flex items-center gap-2"><Clock className="h-4 w-4" /> {locale === 'ar' ? 'وقت النداء:' : 'Called at:'} {roomAppointment.calledTime ? new Date(roomAppointment.calledTime).toLocaleTimeString() : 'N/A'}</p>
                            </div>
-                           <div className="w-full md:w-auto flex flex-col gap-2">
+                           <div className="w-full md:w-auto flex flex-col gap-2 self-center">
                             {roomAppointment.status === 'InRoom' && (
                                 <Button onClick={() => handleStartConsultation(roomAppointment)} size="lg">
                                     <Stethoscope className="mr-2" />

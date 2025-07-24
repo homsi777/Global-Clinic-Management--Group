@@ -22,6 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useLocale } from '@/components/locale-provider';
 import { cn } from '@/lib/utils';
+import type { Appointment } from '@/lib/types';
 
 export default function AppointmentsPage() {
   const { appointments, getPatientById, updateAppointmentStatus, rooms, isLoading } = useClinicContext();
@@ -42,7 +43,7 @@ export default function AppointmentsPage() {
   }, [appointments]);
 
   const waitingPatients = sortedAppointments.filter(apt => apt.status === 'Waiting');
-  const inRoomPatients = sortedAppointments.filter(apt => apt.status === 'InRoom');
+  const inProgressPatients = sortedAppointments.filter(apt => apt.status === 'InRoom' || apt.status === 'InConsultation');
   const completedPatients = sortedAppointments.filter(apt => apt.status === 'Completed');
 
   const handleCallClick = (appointmentId: string) => {
@@ -134,6 +135,10 @@ export default function AppointmentsPage() {
     }
   };
 
+  const handleStartConsultation = async (appointmentId: string) => {
+    await updateAppointmentStatus(appointmentId, 'InConsultation');
+  }
+
   const handleComplete = async (appointmentId: string) => {
     await updateAppointmentStatus(appointmentId, 'Completed');
      const appointment = appointments.find(apt => apt._id === appointmentId);
@@ -148,9 +153,8 @@ export default function AppointmentsPage() {
      }
   }
 
-  const PatientCard = ({ appointmentId }: { appointmentId: string }) => {
-    const appointment = appointments.find(apt => apt._id === appointmentId);
-    const patient = appointment ? getPatientById(appointment.patientId) : null;
+  const PatientCard = ({ appointment }: { appointment: Appointment }) => {
+    const patient = getPatientById(appointment.patientId);
     
     const [waitTime, setWaitTime] = useState<string | null>(null);
 
@@ -173,11 +177,12 @@ export default function AppointmentsPage() {
     }, [appointment, locale]);
 
 
-    if (!appointment || !patient) return null;
+    if (!patient) return null;
 
     const cardStatusStyles = {
         Waiting: 'border-l-4 border-l-orange-500 bg-orange-500/5',
-        InRoom: 'border-l-4 border-l-red-500 bg-red-500/5',
+        InRoom: 'border-l-4 border-l-blue-500 bg-blue-500/5',
+        InConsultation: 'border-l-4 border-l-red-500 bg-red-500/5',
         Completed: 'border-l-4 border-l-green-500 bg-green-500/5 opacity-80'
     }
 
@@ -204,11 +209,17 @@ export default function AppointmentsPage() {
                     {waitTime}
                   </Badge>
                 )}
-                {appointment.status === 'InRoom' && (
-                  <Badge variant="default" className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600">
-                    <DoorOpen className="h-3 w-3" />
-                    {locale === 'ar' ? `غرفة ${appointment.assignedRoomNumber}` : `Room ${appointment.assignedRoomNumber}`}
-                  </Badge>
+                {(appointment.status === 'InRoom' || appointment.status === 'InConsultation') && (
+                   <Badge variant="outline" className="flex items-center gap-1.5 border-gray-400">
+                        <DoorOpen className="h-3 w-3" />
+                        {locale === 'ar' ? `غرفة ${appointment.assignedRoomNumber}` : `Room ${appointment.assignedRoomNumber}`}
+                   </Badge>
+                )}
+                 {appointment.status === 'InConsultation' && (
+                    <Badge variant="default" className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600">
+                        <Stethoscope className="h-3 w-3" />
+                        {locale === 'ar' ? `في الفحص` : `Examining`}
+                    </Badge>
                 )}
                 {appointment.status === 'Completed' && (
                      <Badge variant="default" className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600">
@@ -220,7 +231,7 @@ export default function AppointmentsPage() {
             <p className="text-sm text-muted-foreground flex items-center gap-1.5"><Hash className="h-3 w-3" /> {patient.patientId}</p>
           </div>
         </div>
-        {(appointment.status === 'Waiting' || appointment.status === 'InRoom') && (
+        {(appointment.status === 'Waiting' || appointment.status === 'InRoom' || appointment.status === 'InConsultation') && (
             <div className="px-4 pb-4 flex justify-end gap-2">
                 {appointment.status === 'Waiting' && (
                 <Button onClick={() => handleCallClick(appointment._id)} disabled={loadingPatientId === appointment._id} size="sm">
@@ -229,6 +240,12 @@ export default function AppointmentsPage() {
                 </Button>
                 )}
                 {appointment.status === 'InRoom' && (
+                    <Button onClick={() => handleStartConsultation(appointment._id)} size="sm">
+                        <Stethoscope className="ml-0 rtl:ml-2 mr-2 rtl:mr-0 h-4 w-4" />
+                        {locale === 'ar' ? 'بدء الفحص' : 'Start Consultation'}
+                    </Button>
+                )}
+                {appointment.status === 'InConsultation' && (
                 <Button onClick={() => handleComplete(appointment._id)} size="sm" variant="outline">
                     <CheckCircle className="ml-0 rtl:ml-2 mr-2 rtl:mr-0 h-4 w-4" />
                     {locale === 'ar' ? 'إنهاء' : 'Complete'}
@@ -263,7 +280,7 @@ export default function AppointmentsPage() {
                 <CardContent>
                     <AnimatePresence>
                         {waitingPatients.length > 0 ? (
-                            waitingPatients.map(apt => <PatientCard key={apt._id} appointmentId={apt._id} />)
+                            waitingPatients.map(apt => <PatientCard key={apt._id} appointment={apt} />)
                         ) : (
                             <p className="text-muted-foreground text-center py-8">{locale === 'ar' ? 'لا يوجد مرضى في الانتظار.' : 'No patients waiting.'}</p>
                         )}
@@ -272,13 +289,13 @@ export default function AppointmentsPage() {
             </Card>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium">{locale === 'ar' ? 'داخل الغرفة' : 'In Room'}</CardTitle>
+                    <CardTitle className="text-lg font-medium">{locale === 'ar' ? 'قيد التقدم' : 'In Progress'}</CardTitle>
                     <Stethoscope className="h-5 w-5 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                     <AnimatePresence>
-                        {inRoomPatients.length > 0 ? (
-                            inRoomPatients.map(apt => <PatientCard key={apt._id} appointmentId={apt._id} />)
+                        {inProgressPatients.length > 0 ? (
+                            inProgressPatients.map(apt => <PatientCard key={apt._id} appointment={apt} />)
                         ) : (
                             <p className="text-muted-foreground text-center py-8">{locale === 'ar' ? 'لا يوجد مرضى في الغرف.' : 'No patients in rooms.'}</p>
                         )}
@@ -293,7 +310,7 @@ export default function AppointmentsPage() {
                 <CardContent>
                     <AnimatePresence>
                         {completedPatients.length > 0 ? (
-                            completedPatients.map(apt => <PatientCard key={apt._id} appointmentId={apt._id} />)
+                            completedPatients.map(apt => <PatientCard key={apt._id} appointment={apt} />)
                         ) : (
                             <p className="text-muted-foreground text-center py-8">{locale === 'ar' ? 'لا توجد مواعيد مكتملة اليوم.' : 'No completed appointments today.'}</p>
                         )}

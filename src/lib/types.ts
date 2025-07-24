@@ -27,7 +27,7 @@ export interface Room {
   patientName?: string;
 }
 
-export type AppointmentStatus = 'Waiting' | 'InRoom' | 'Completed' | 'Canceled' | 'Missed';
+export type AppointmentStatus = 'Waiting' | 'InRoom' | 'InConsultation' | 'Completed' | 'Canceled' | 'Missed';
 
 export interface Appointment {
   _id:string;

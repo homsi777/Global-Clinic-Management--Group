@@ -112,6 +112,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     
     await db.appointments.update(appointmentId, updates);
 
+    // Update app state for waiting room display
     if (status === 'InRoom') {
         await db.appState.put({ 
             id: 'current', 
@@ -119,7 +120,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             assignedRoomNumber: roomNumber,
             calledTime: new Date().toISOString()
         });
-    } else {
+    } else if (status === 'Completed' || status === 'Canceled') {
+        // If the patient's session is over, clear them from the "current called" state
         const currentAppState = await db.appState.get('current');
         if (currentAppState?.currentCalledPatientId === appointment.patientId) {
             await db.appState.put({ id: 'current', currentCalledPatientId: null, assignedRoomNumber: null, calledTime: null });
@@ -130,8 +132,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const TOTAL_ROOMS = 5;
   const rooms: Room[] = Array.from({ length: TOTAL_ROOMS }, (_, i) => {
     const roomNumber = i + 1;
+    // A room is considered occupied only if a patient is actively in consultation
     const occupyingAppointment = appointments?.find(
-      (apt) => apt.status === 'InRoom' && apt.assignedRoomNumber === roomNumber
+      (apt) => apt.status === 'InConsultation' && apt.assignedRoomNumber === roomNumber
     );
     const patient = occupyingAppointment && patients ? getPatientById(occupyingAppointment.patientId) : undefined;
     return {

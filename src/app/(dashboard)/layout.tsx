@@ -51,9 +51,9 @@ export default function DashboardLayout({
 
 
   return (
-    <div dir={locale === 'ar' ? 'rtl' : 'ltr'} className={cn(locale === 'ar' && 'font-arabic')}>
+    <div dir={locale === 'ar' ? 'rtl' : 'ltr'} className={cn("bg-muted/40", locale === 'ar' && 'font-arabic')}>
       <SidebarProvider>
-        <Sidebar variant="sidebar" collapsible="icon" side={locale === 'ar' ? 'right' : 'left'}>
+        <Sidebar variant="floating" collapsible="icon" side={locale === 'ar' ? 'right' : 'left'}>
           <SidebarInset>
             <SidebarHeader>
               <div className="flex h-14 items-center justify-center group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:justify-center">
@@ -61,8 +61,8 @@ export default function DashboardLayout({
                   href="/"
                   className="flex items-center gap-2 font-semibold"
                 >
-                  <Logo className="h-8 w-8 text-primary" />
-                  <span className="text-lg font-bold group-data-[collapsible=icon]:hidden">
+                  <Logo className="h-8 w-8 text-sidebar-primary" />
+                  <span className="text-lg font-bold group-data-[collapsible=icon]:hidden text-sidebar-foreground">
                     العالمية جروب
                   </span>
                 </Link>
@@ -90,7 +90,7 @@ export default function DashboardLayout({
               <div className="flex w-full flex-col gap-2 group-data-[collapsible=icon]:items-center">
                   <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="w-full justify-start">
+                        <Button variant="ghost" size="sm" className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
                           <User className="size-4" />
                           <span className="group-data-[collapsible=icon]:hidden">{currentUser.name}</span>
                         </Button>
@@ -110,7 +110,7 @@ export default function DashboardLayout({
                   <Button
                       variant="ghost"
                       size="sm"
-                      className="w-full justify-start"
+                      className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                     >
                       {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
@@ -120,7 +120,7 @@ export default function DashboardLayout({
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="w-full justify-start">
+                        <Button variant="ghost" size="sm" className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
                           <Globe className="size-4" />
                           <span className="group-data-[collapsible=icon]:hidden">{locale.toUpperCase()}</span>
                         </Button>
@@ -137,7 +137,7 @@ export default function DashboardLayout({
                 </div>
 
                 <Link href="/settings" className="w-full">
-                  <Button variant="ghost" size="sm" className="w-full justify-start">
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
                       <Settings className="size-4" />
                       <span className="group-data-[collapsible=icon]:hidden">
                           {locale === 'ar' ? 'الإعدادات' : 'Settings'}
@@ -145,7 +145,7 @@ export default function DashboardLayout({
                   </Button>
                 </Link>
               </div>
-              <SidebarTrigger className="self-end justify-self-end group-data-[collapsible=icon]:self-center group-data-[collapsible=icon]:justify-self-center [&_svg]:size-5" />
+              <SidebarTrigger className="self-end justify-self-end group-data-[collapsible=icon]:self-center group-data-[collapsible=icon]:justify-self-center [&_svg]:size-5 text-sidebar-foreground hover:text-sidebar-accent-foreground" />
             </SidebarFooter>
           </SidebarInset>
         </Sidebar>

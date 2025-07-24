@@ -11,13 +11,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FinancialsTable from '@/components/dashboard/financials-table';
 import { useLocale } from '@/components/locale-provider';
-import { Activity, CreditCard, DollarSign, PlusCircle, Users } from 'lucide-react';
-import AddNewPaymentForm from '@/components/dashboard/add-new-payment-form';
-import { Button } from '@/components/ui/button';
+import { Activity, CreditCard, DollarSign } from 'lucide-react';
 
 export default function FinancialsPage() {
   const { locale } = useLocale();
-  const [activeTab, setActiveTab] = React.useState('transactions');
 
   const summaryCards = [
     {
@@ -62,10 +59,6 @@ export default function FinancialsPage() {
                 : 'Manage billing, payments, and financial records.'}
             </p>
         </div>
-        <Button onClick={() => setActiveTab('new-payment')}>
-            <PlusCircle className="mr-2" />
-            {locale === 'ar' ? 'إضافة دفعة جديدة' : 'Add New Payment'}
-        </Button>
       </header>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -88,25 +81,7 @@ export default function FinancialsPage() {
           </Card>
         ))}
       </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="transactions">
-            {locale === 'ar' ? 'سجل المعاملات' : 'Transaction History'}
-          </TabsTrigger>
-          <TabsTrigger value="new-payment">
-            {locale === 'ar' ? 'إضافة دفعة جديدة' : 'Add New Payment'}
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="transactions">
-          <FinancialsTable />
-        </TabsContent>
-        <TabsContent value="new-payment">
-          <AddNewPaymentForm />
-        </TabsContent>
-      </Tabs>
+        <FinancialsTable />
     </div>
   );
 }
-
-    

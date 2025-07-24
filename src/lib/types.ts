@@ -2,10 +2,15 @@ export interface Patient {
   _id: string;
   patientName: string;
   patientId: string; // Unique ID
-  startDate: string; // Using string for simplicity with new Date()
-  currentStatus: string;
+  dateOfBirth: string;
+  phone: string;
+  email?: string;
+  address?: string;
+  startDate: string; 
+  currentStatus: string; // e.g., 'Active Treatment', 'Retention Phase'
   totalSessions: number;
   completedSessions: number;
+  chiefComplaint: string;
   notes: string;
   avatarUrl: string;
 }

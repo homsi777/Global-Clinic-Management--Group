@@ -39,13 +39,15 @@ export async function populate() {
         return;
     }
     
+    console.log('Database is empty, populating with mock data...');
     const { mockPatients, mockAppointments, mockTransactions } = await import('@/lib/data');
 
     await db.transaction('rw', db.patients, db.appointments, db.transactions, db.appState, async () => {
-        await db.patients.bulkAdd(mockPatients);
-        await db.appointments.bulkAdd(mockAppointments);
-        await db.transactions.bulkAdd(mockTransactions);
-        await db.appState.add({ id: 'current', currentCalledPatientId: null, assignedRoomNumber: null, calledTime: null });
+        // Use bulkPut to avoid errors on hot-reloads in development
+        await db.patients.bulkPut(mockPatients);
+        await db.appointments.bulkPut(mockAppointments);
+        await db.transactions.bulkPut(mockTransactions);
+        await db.appState.put({ id: 'current', currentCalledPatientId: null, assignedRoomNumber: null, calledTime: null });
     });
     console.log('Database populated with mock data.');
 }

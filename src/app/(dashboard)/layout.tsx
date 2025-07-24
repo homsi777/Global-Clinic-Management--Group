@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Users, MonitorPlay, Settings, DollarSign, Moon, Sun, Globe, FileText, Receipt, User } from 'lucide-react';
+import { Home, Users, MonitorPlay, Settings, DollarSign, Moon, Sun, Globe, FileText, Receipt, User, CalendarClock } from 'lucide-react';
 import { Logo } from '@/components/icons/logo';
 import {
   SidebarProvider,
@@ -41,6 +41,7 @@ export default function DashboardLayout({
   const navItems = [
       { href: '/', icon: <Home />, label: 'Dashboard', labelAr: 'الشاشة الرئيسية', roles: ['Admin', 'Nurse', 'DoctorAssistant'] as UserRole[] },
       { href: '/patients', icon: <Users />, label: 'Patients', labelAr: 'المرضى', roles: ['Admin', 'Nurse', 'DoctorAssistant'] as UserRole[] },
+      { href: '/appointments', icon: <CalendarClock />, label: 'Appointments', labelAr: 'المواعيد', roles: ['Admin', 'Nurse', 'DoctorAssistant'] as UserRole[] },
       { href: '/financials', icon: <DollarSign />, label: 'Financials', labelAr: 'المالية', roles: ['Admin'] as UserRole[] },
       { href: '/reports', icon: <FileText />, label: 'Reports', labelAr: 'التقارير', roles: ['Admin', 'DoctorAssistant'] as UserRole[] },
       { href: '/expenses', icon: <Receipt />, label: 'Expenses', labelAr: 'المصاريف', roles: ['Admin'] as UserRole[] },
@@ -155,3 +156,4 @@ export default function DashboardLayout({
       </SidebarProvider>
     </div>
   );
+}

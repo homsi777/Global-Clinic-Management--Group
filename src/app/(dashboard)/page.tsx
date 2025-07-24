@@ -1,7 +1,6 @@
 
 'use client';
 
-import PatientQueue from '@/components/dashboard/patient-queue';
 import ClinicRooms from '@/components/dashboard/clinic-rooms';
 import { useLocale } from '@/components/locale-provider';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -107,7 +106,6 @@ export default function DashboardPage() {
       </div>
 
       <ClinicRooms />
-      <PatientQueue />
     </div>
   );
 }

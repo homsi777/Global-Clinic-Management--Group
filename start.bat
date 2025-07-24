@@ -1,0 +1,3 @@
+@echo off
+echo Starting the production server...
+call npm run start

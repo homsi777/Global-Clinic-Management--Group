@@ -1,0 +1,3 @@
+@echo off
+echo Starting the development server...
+call npm run dev

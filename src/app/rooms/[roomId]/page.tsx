@@ -20,7 +20,7 @@ export default function RoomDetailPage() {
     const { locale } = useLocale();
 
     const roomId = typeof params.roomId === 'string' ? params.roomId : '';
-    const room = useMemo(() => rooms.find(r => r.roomNumber.toString() === roomId), [rooms, roomId]);
+    const room = useMemo(() => rooms.find(r => r._id === roomId), [rooms, roomId]);
 
     const roomAppointment = useMemo(() => 
         room?.currentAppointmentId 

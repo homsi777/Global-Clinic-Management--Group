@@ -24,6 +24,17 @@ export default function PatientCard({ patient }: PatientCardProps) {
     'Retention Phase': 'border-l-4 border-l-green-500',
   };
 
+  const statusTranslations: { [key: string]: { [key: string]: string } } = {
+    'Active Treatment': { en: 'Active Treatment', ar: 'علاج فعال' },
+    'Final Phase': { en: 'Final Phase', ar: 'المرحلة النهائية' },
+    'Retention Phase': { en: 'Retention Phase', ar: 'مرحلة التثبيت' },
+  };
+
+  const currentStatusText = statusTranslations[patient.currentStatus]
+    ? statusTranslations[patient.currentStatus][locale]
+    : patient.currentStatus;
+
+
   return (
     <Link href={`/patients/${patient.patientId}`} className="group">
         <Card className={cn("flex flex-col h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-1", statusColors[patient.currentStatus] || 'border-l-4 border-l-gray-300')}>
@@ -47,7 +58,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
                 </div>
             </CardContent>
             <CardFooter className="text-xs text-muted-foreground justify-between items-center">
-                <span>{patient.currentStatus}</span>
+                <span>{currentStatusText}</span>
                 <ArrowRight className={cn("h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity", locale === 'ar' && 'transform rotate-180')} />
             </CardFooter>
         </Card>

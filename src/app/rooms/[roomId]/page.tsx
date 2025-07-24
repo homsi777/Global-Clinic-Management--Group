@@ -65,7 +65,6 @@ export default function RoomDetailPage() {
         );
     }
     
-    // **THE FIX**: Handle the case where the room is not found after loading is complete.
     if (!room) {
         return (
              <div className="flex flex-col items-center justify-center h-screen">
@@ -77,13 +76,17 @@ export default function RoomDetailPage() {
             </div>
         );
     }
-
-    const roomStatusText = {
+    
+    // Fallback mapping to prevent crash on unexpected status
+    const roomStatusMapping = {
         Available: { ar: 'متاحة', en: 'Available', color: 'text-green-500' },
         Assigned: { ar: 'مخصصة', en: 'Assigned', color: 'text-orange-500' },
         Occupied: { ar: 'مشغولة', en: 'Occupied', color: 'text-red-500' },
-    }[room.currentStatus];
+        default: { ar: 'غير معروفة', en: 'Unknown', color: 'text-gray-500' }
+    };
     
+    const roomStatusText = roomStatusMapping[room.currentStatus as keyof typeof roomStatusMapping] || roomStatusMapping.default;
+
     return (
         <div className={cn("flex flex-col gap-6 p-4 md:p-6 lg:p-8 min-h-screen bg-background text-foreground", locale === 'ar' && 'font-arabic')} dir={locale === 'ar' ? 'rtl' : 'ltr'}>
             <header className="flex items-center gap-4">

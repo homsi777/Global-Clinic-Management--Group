@@ -7,16 +7,30 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Megaphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AppProvider } from '@/components/app-provider';
+import { LocaleProvider } from '@/components/locale-provider';
 
 
-export default function RoomDetailPage() {
+function RoomDetailPageContent() {
     const params = useParams();
     const router = useRouter();
-    const { rooms } = useClinicContext();
+    const { rooms, getPatientById, appointments, updateAppointmentStatus } = useClinicContext();
     const { locale } = useLocale();
 
     const roomId = typeof params.roomId === 'string' ? params.roomId : '';
     const room = rooms.find(r => r._id === roomId);
+
+    const handleCallNextPatient = () => {
+        const nextPatient = appointments.find(apt => apt.status === 'Waiting');
+        if (nextPatient) {
+            updateAppointmentStatus(nextPatient._id, 'InRoom', room?.roomNumber);
+            // In a real app, you would also trigger the announcement flow here.
+        } else {
+            // Handle case where no patients are waiting
+            alert(locale === 'ar' ? 'لا يوجد مرضى في قائمة الانتظار.' : 'No patients are waiting.');
+        }
+    };
+
 
     if (!room) {
         return (
@@ -27,9 +41,9 @@ export default function RoomDetailPage() {
     }
     
     return (
-        <div className="flex flex-col gap-6">
+        <div className={cn("flex flex-col gap-6 p-4 md:p-6 lg:p-8 min-h-screen bg-background text-foreground", locale === 'ar' && 'font-arabic')} dir={locale === 'ar' ? 'rtl' : 'ltr'}>
             <header className="flex items-center gap-4">
-                <Button variant="outline" size="icon" onClick={() => router.back()}>
+                <Button variant="outline" size="icon" onClick={() => window.close()}>
                 <ArrowLeft className={cn(locale === 'ar' && 'transform rotate-180')} />
                 </Button>
                 <div>
@@ -52,7 +66,7 @@ export default function RoomDetailPage() {
                             <CardTitle>{locale === 'ar' ? 'الإجراءات السريعة' : 'Quick Actions'}</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <Button className="w-full" disabled={room.isOccupied}>
+                            <Button className="w-full" disabled={room.isOccupied} onClick={handleCallNextPatient}>
                                 <Megaphone className="mr-2" />
                                 {locale === 'ar' ? 'استدعاء المريض التالي' : 'Call Next Patient'}
                             </Button>
@@ -82,4 +96,15 @@ export default function RoomDetailPage() {
             </div>
         </div>
     );
+}
+
+
+export default function RoomDetailPage() {
+    return (
+        <LocaleProvider>
+            <AppProvider>
+                <RoomDetailPageContent />
+            </AppProvider>
+        </LocaleProvider>
+    )
 }

@@ -28,13 +28,6 @@ export async function announceNextPatient(input: AnnounceNextPatientInput): Prom
   return announceNextPatientFlow(input);
 }
 
-const announcePrompt = ai.definePrompt({
-  name: 'announcePatientPrompt',
-  input: {schema: AnnounceNextPatientInputSchema},
-  prompt: `Announce the following patient details:\nPatient Name: {{{patientName}}}\nPatient ID: {{{patientId}}}\nRoom Number: {{{roomNumber}}}`,
-});
-
-
 const announceNextPatientFlow = ai.defineFlow(
   {
     name: 'announceNextPatientFlow',
@@ -42,7 +35,8 @@ const announceNextPatientFlow = ai.defineFlow(
     outputSchema: AnnounceNextPatientOutputSchema,
   },
   async input => {
-    // const announcementText = await announcePrompt(input);
+    // Construct the announcement text, repeating it three times.
+    const announcementText = `Announcing patient ${input.patientName}, patient ID ${input.patientId}, please proceed to room number ${input.roomNumber}. `.repeat(3);
 
     const {media} = await ai.generate({
       model: 'googleai/gemini-2.5-flash-preview-tts',
@@ -54,7 +48,7 @@ const announceNextPatientFlow = ai.defineFlow(
           },
         },
       },
-      prompt: `Announcing patient ${input.patientName}, patient ID ${input.patientId}, please proceed to room number ${input.roomNumber}.`,
+      prompt: announcementText,
     });
 
     if (!media) {

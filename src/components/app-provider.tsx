@@ -148,17 +148,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const TOTAL_ROOMS = 5;
   const rooms: Room[] = Array.from({ length: TOTAL_ROOMS }, (_, i) => {
     const roomNumber = i + 1;
-    // A room is considered occupied only if a patient is actively in consultation
-    const occupyingAppointment = appointments?.find(
-      (apt) => (apt.status === 'InConsultation' || apt.status === 'InRoom') && apt.assignedRoomNumber === roomNumber
+    
+    const appointmentInRoom = appointments?.find(
+        (apt) => apt.assignedRoomNumber === roomNumber && (apt.status === 'InRoom' || apt.status === 'InConsultation')
     );
-    const patient = occupyingAppointment && patients ? getPatientById(occupyingAppointment.patientId) : undefined;
+    
+    const patient = appointmentInRoom && patients ? getPatientById(appointmentInRoom.patientId) : undefined;
+    
+    let status: Room['currentStatus'] = 'Available';
+    if (appointmentInRoom) {
+        if (appointmentInRoom.status === 'InConsultation') {
+            status = 'Occupied';
+        } else if (appointmentInRoom.status === 'InRoom') {
+            status = 'Assigned';
+        }
+    }
+
     return {
       _id: `room-${roomNumber}`,
       roomNumber,
-      isOccupied: !!occupyingAppointment,
+      isOccupied: status === 'Occupied',
+      currentStatus: status,
       currentPatientId: patient?.patientId,
       patientName: patient?.patientName,
+      currentAppointmentId: appointmentInRoom?._id
     };
   });
 

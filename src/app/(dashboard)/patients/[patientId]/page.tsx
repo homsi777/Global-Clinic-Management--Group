@@ -5,13 +5,11 @@ import { useLocale } from '@/components/locale-provider';
 import { useRouter, useParams } from 'next/navigation';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Edit, Phone, Mail, MapPin, Calendar, FileText, BriefcaseMedical, TrendingUp, AlertTriangle, Award, DoorOpen, PlusCircle, DollarSign, Activity, CreditCard } from 'lucide-react';
+import { ArrowLeft, Edit, Phone, Mail, MapPin, Calendar, BriefcaseMedical, TrendingUp, Award, DoorOpen, DollarSign, CreditCard, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import type { Patient } from '@/lib/types';
-import { Badge } from '@/components/ui/badge';
-import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FinancialsTable from '@/components/dashboard/financials-table';
 import AddNewPaymentForm from '@/components/dashboard/add-new-payment-form';
@@ -199,3 +197,5 @@ export default function PatientDetailPage() {
     </div>
   );
 }
+
+    

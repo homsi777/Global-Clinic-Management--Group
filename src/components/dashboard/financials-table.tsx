@@ -117,3 +117,5 @@ export default function FinancialsTable({ transactions }: { transactions?: Trans
     </Card>
   );
 }
+
+    

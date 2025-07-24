@@ -69,12 +69,14 @@ export default function PatientQueue() {
         patientId: patient.patientId,
         roomNumber: parseInt(roomNumber, 10),
       });
+      
+      // Update status immediately to sync visual display
+      updateAppointmentStatus(appointment._id, 'InRoom', parseInt(roomNumber, 10));
 
       const audio = new Audio(result.media);
       audio.play();
       
       audio.onended = () => {
-        updateAppointmentStatus(appointment._id, 'InRoom', parseInt(roomNumber, 10));
         toast({
           title: locale === 'ar' ? 'تم استدعاء المريض' : "Patient Called",
           description: locale === 'ar' ? `تم توجيه ${patient.patientName} إلى الغرفة ${roomNumber}.` : `${patient.patientName} has been directed to room ${roomNumber}.`,

@@ -193,16 +193,16 @@ export default function AppointmentsPage() {
                     {waitTime}
                   </Badge>
                 )}
-                {(appointment.status === 'InRoom' || appointment.status === 'InConsultation') && (
-                   <Badge variant="outline" className="flex items-center gap-1.5 border-gray-400">
+                {(appointment.status === 'InRoom') && (
+                   <Badge variant="outline" className="flex items-center gap-1.5 border-blue-500 text-blue-600">
                         <DoorOpen className="h-3 w-3" />
-                        {locale === 'ar' ? `غرفة ${appointment.assignedRoomNumber}` : `Room ${appointment.assignedRoomNumber}`}
+                        {locale === 'ar' ? `في طريقه إلى الغرفة ${appointment.assignedRoomNumber}` : `To Room ${appointment.assignedRoomNumber}`}
                    </Badge>
                 )}
                  {appointment.status === 'InConsultation' && (
                     <Badge variant="default" className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600">
                         <Stethoscope className="h-3 w-3" />
-                        {locale === 'ar' ? `في الفحص` : `Examining`}
+                        {locale === 'ar' ? `في الفحص بالغرفة ${appointment.assignedRoomNumber}` : `Examining in Room ${appointment.assignedRoomNumber}`}
                     </Badge>
                 )}
                 {appointment.status === 'Completed' && (

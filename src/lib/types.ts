@@ -19,12 +19,16 @@ export interface Patient {
   nextAppointmentDate?: string;
 }
 
+export type RoomStatus = 'Available' | 'Assigned' | 'Occupied';
+
 export interface Room {
   _id: string;
   roomNumber: number;
-  isOccupied: boolean;
+  isOccupied: boolean; // True only when InConsultation
+  currentStatus: RoomStatus;
   currentPatientId?: string;
   patientName?: string;
+  currentAppointmentId?: string;
 }
 
 export type AppointmentStatus = 'Waiting' | 'InRoom' | 'InConsultation' | 'Completed' | 'Canceled' | 'Missed';

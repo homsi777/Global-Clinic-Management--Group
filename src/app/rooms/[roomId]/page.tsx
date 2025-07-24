@@ -9,12 +9,11 @@ import { ArrowLeft, Megaphone, CheckCircle, Stethoscope, User, Clock, Hash } fro
 import { cn } from '@/lib/utils';
 import { AppProvider } from '@/components/app-provider';
 import { LocaleProvider } from '@/components/locale-provider';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '@/lib/db';
 import type { Appointment } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useMemo } from 'react';
 
 function RoomDetailPageContent() {
     const params = useParams();
@@ -23,16 +22,13 @@ function RoomDetailPageContent() {
     const { locale } = useLocale();
 
     const roomId = typeof params.roomId === 'string' ? params.roomId : '';
-    const room = rooms.find(r => r._id === roomId);
+    const room = useMemo(() => rooms.find(r => r.roomNumber.toString() === roomId), [rooms, roomId]);
 
-    const roomAppointment = useLiveQuery(() => 
-        room?.roomNumber 
-        ? db.appointments
-            .where('assignedRoomNumber').equals(room.roomNumber)
-            .and(apt => apt.status === 'InRoom' || apt.status === 'InConsultation')
-            .first() 
-        : Promise.resolve(undefined)
-    , [room?.roomNumber]);
+    const roomAppointment = useMemo(() => 
+        room?.currentAppointmentId 
+        ? appointments.find(apt => apt._id === room.currentAppointmentId)
+        : undefined
+    , [room, appointments]);
 
     const patient = roomAppointment ? getPatientById(roomAppointment.patientId) : null;
     
@@ -41,6 +37,7 @@ function RoomDetailPageContent() {
         await updateAppointmentStatus(appointment._id, 'InConsultation', room.roomNumber);
         toast({
             title: locale === 'ar' ? 'بدأ الفحص' : 'Consultation Started',
+            description: locale === 'ar' ? `بدأ فحص المريض ${patient?.patientName}` : `Consultation started for ${patient?.patientName}.`,
         })
     }
 
@@ -49,6 +46,7 @@ function RoomDetailPageContent() {
         await updateAppointmentStatus(appointment._id, 'Completed', room.roomNumber);
         toast({
             title: locale === 'ar' ? 'اكتمل الفحص' : 'Consultation Completed',
+             description: locale === 'ar' ? `اكتمل فحص المريض ${patient?.patientName}` : `Consultation completed for ${patient?.patientName}.`,
         })
     }
     
@@ -56,7 +54,7 @@ function RoomDetailPageContent() {
         // This is a placeholder for a more advanced "call next" from room feature
         toast({
             title: locale === 'ar' ? 'وظيفة قيد الإنشاء' : 'Feature in Development',
-            description: locale === 'ar' ? 'سيتم تفعيل استدعاء المريض التالي من الغرفة قريبًا.' : 'Calling the next patient from the room will be enabled soon.'
+            description: locale === 'ar' ? 'سيتم تفعيل استدعاء المريض التالي من لوحة المواعيد الرئيسية.' : 'Calling the next patient should be done from the main appointments dashboard.'
         })
     };
 
@@ -69,6 +67,12 @@ function RoomDetailPageContent() {
         );
     }
     
+    const roomStatusText = {
+        Available: { ar: 'متاحة', en: 'Available', color: 'text-green-500' },
+        Assigned: { ar: 'مخصصة', en: 'Assigned', color: 'text-orange-500' },
+        Occupied: { ar: 'مشغولة', en: 'Occupied', color: 'text-red-500' },
+    }[room.currentStatus];
+    
     return (
         <div className={cn("flex flex-col gap-6 p-4 md:p-6 lg:p-8 min-h-screen bg-background text-foreground", locale === 'ar' && 'font-arabic')} dir={locale === 'ar' ? 'rtl' : 'ltr'}>
             <header className="flex items-center gap-4">
@@ -79,11 +83,8 @@ function RoomDetailPageContent() {
                     <h1 className="text-3xl font-bold tracking-tight">
                         {locale === 'ar' ? `غرفة الطبيب ${room.roomNumber}` : `Doctor's Room ${room.roomNumber}`}
                     </h1>
-                     <p className={cn("text-lg font-semibold", room.isOccupied ? 'text-red-500' : 'text-green-500')}>
-                        {room.isOccupied ? 
-                            (locale === 'ar' ? `مشغولة` : `Occupied`) :
-                            (patient ? (locale === 'ar' ? 'مريض في الطريق' : 'Patient Assigned') : (locale === 'ar' ? 'متاحة' : 'Available'))
-                        }
+                     <p className={cn("text-lg font-semibold", roomStatusText.color)}>
+                        {locale === 'ar' ? roomStatusText.ar : roomStatusText.en}
                     </p>
                 </div>
             </header>
@@ -115,13 +116,13 @@ function RoomDetailPageContent() {
                            </div>
                            <div className="w-full md:w-auto flex flex-col gap-2 self-center">
                             {roomAppointment.status === 'InRoom' && (
-                                <Button onClick={() => handleStartConsultation(roomAppointment)} size="lg">
+                                <Button onClick={() => handleStartConsultation(roomAppointment)} size="lg" className="bg-green-600 hover:bg-green-700">
                                     <Stethoscope className="mr-2" />
                                     {locale === 'ar' ? 'بدء الفحص' : 'Start Consultation'}
                                 </Button>
                             )}
                              {roomAppointment.status === 'InConsultation' && (
-                                <Button onClick={() => handleCompleteConsultation(roomAppointment)} size="lg" variant="destructive">
+                                <Button onClick={() => handleCompleteConsultation(roomAppointment)} size="lg" variant="default">
                                     <CheckCircle className="mr-2" />
                                     {locale === 'ar' ? 'إنهاء الفحص' : 'Complete Consultation'}
                                 </Button>

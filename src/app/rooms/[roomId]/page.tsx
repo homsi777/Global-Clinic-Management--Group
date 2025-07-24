@@ -60,8 +60,8 @@ export default function RoomDetailPage() {
 
     if (isLoading || !room) {
         return (
-            <div className="flex items-center justify-center h-full">
-                <p className="text-muted-foreground">{locale === 'ar' ? 'جاري التحميل...' : 'Loading...'}</p>
+            <div className="flex items-center justify-center h-screen">
+                <p className="text-muted-foreground">{locale === 'ar' ? 'جاري تحميل بيانات الغرفة...' : 'Loading room data...'}</p>
             </div>
         );
     }

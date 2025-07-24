@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { BarChart, CartesianGrid, XAxis, Bar, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, CartesianGrid, XAxis, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
 import { useClinicContext } from '@/components/app-provider';
 import type { Patient } from '@/lib/types';
 
@@ -43,25 +43,20 @@ export default function ReportsPage() {
   const { locale } = useLocale();
   const { patients } = useClinicContext();
 
-  const statusData = patients.reduce((acc, patient) => {
-    const status = patient.currentStatus;
-    const existing = acc.find(item => item.name === status);
-    if(existing) {
-        existing.value += 1;
-    } else {
-        acc.push({ name: status, value: 1 });
-    }
-    return acc;
-  }, [] as { name: Patient['currentStatus'], value: number }[]);
-
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
-
   const statusTranslations: { [key in Patient['currentStatus']]: { en: string, ar: string } } = {
     'Active Treatment': { en: 'Active Treatment', ar: 'علاج فعال' },
     'Final Phase': { en: 'Final Phase', ar: 'المرحلة النهائية' },
     'Retention Phase': { en: 'Retention Phase', ar: 'مرحلة التثبيت' },
     'Completed': { en: 'Completed', ar: 'مكتمل' }
   };
+  
+  const statusData = (Object.keys(statusTranslations) as Array<Patient['currentStatus']>).map(status => {
+      const count = patients.filter(p => p.currentStatus === status).length;
+      return { name: status, value: count, label: statusTranslations[status][locale] }
+  }).filter(item => item.value > 0);
+
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 
   return (
@@ -83,8 +78,9 @@ export default function ReportsPage() {
             <CardContent>
                 <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
                   <PieChart>
-                    <ChartTooltip content={<ChartTooltipContent nameKey="name" hideLabel />} />
-                    <Pie data={statusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} fill="#8884d8" label>
+                    <ChartTooltip content={<ChartTooltipContent nameKey="label" hideLabel />} />
+                    <Legend verticalAlign="bottom" height={36}/>
+                    <Pie data={statusData} dataKey="value" nameKey="label" cx="50%" cy="50%" outerRadius={80} fill="#8884d8" label>
                       {statusData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
@@ -140,7 +136,7 @@ export default function ReportsPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center font-medium">{item.value}</TableCell>
-                  <TableCell className="text-center">{((item.value / patients.length) * 100).toFixed(1)}%</TableCell>
+                  <TableCell className="text-center">{patients.length > 0 ? ((item.value / patients.length) * 100).toFixed(1) : 0}%</TableCell>
                 </TableRow>
               ))}
             </TableBody>

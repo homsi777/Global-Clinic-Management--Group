@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie';
-import type { Patient, Appointment, Transaction } from './types';
+import type { Patient, Appointment, Transaction, Expense } from './types';
 
 export interface AppState {
   id: string; // Should be "current"
@@ -12,14 +12,16 @@ class ClinicDatabase extends Dexie {
   patients!: Table<Patient>;
   appointments!: Table<Appointment>;
   transactions!: Table<Transaction>;
+  expenses!: Table<Expense>;
   appState!: Table<AppState>;
 
   constructor() {
     super('clinicDatabase');
-    this.version(1).stores({
+    this.version(2).stores({
       patients: '++_id, patientId, patientName, currentStatus, outstandingBalance',
       appointments: '++_id, patientId, queueTime, status, assignedRoomNumber',
       transactions: '++_id, patientId, date, type, status',
+      expenses: '++_id, date, category',
       appState: '&id',
     });
   }

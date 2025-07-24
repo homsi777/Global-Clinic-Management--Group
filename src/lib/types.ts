@@ -63,6 +63,16 @@ export interface Transaction {
   referenceNumber?: string;
 }
 
+export interface Expense {
+    _id: string;
+    date: number; // Timestamp
+    amount: number;
+    category: 'Rent' | 'Salaries' | 'Supplies' | 'Utilities' | 'Marketing' | 'Maintenance' | 'Other';
+    description: string;
+    recordedBy: string;
+}
+
+
 export type UserRole = 'Admin' | 'Nurse' | 'DoctorAssistant';
 
 export interface User {

@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FinancialsTable from '@/components/dashboard/financials-table';
 import { useLocale } from '@/components/locale-provider';
 import { Activity, CreditCard, DollarSign, Users } from 'lucide-react';
+import AddNewPaymentForm from '@/components/dashboard/add-new-payment-form';
 
 export default function FinancialsPage() {
   const { locale } = useLocale();
@@ -92,32 +93,7 @@ export default function FinancialsPage() {
           <FinancialsTable />
         </TabsContent>
         <TabsContent value="new-payment">
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {locale === 'ar' ? 'تسجيل دفعة جديدة' : 'Record New Payment'}
-              </CardTitle>
-              <CardDescription>
-                {locale === 'ar'
-                  ? 'هذه الميزة قيد التطوير حاليًا.'
-                  : 'This feature is currently under development.'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm py-16">
-              <div className="flex flex-col items-center gap-1 text-center">
-                <h3 className="text-2xl font-bold tracking-tight">
-                  {locale === 'ar'
-                    ? 'قيد الإنشاء'
-                    : 'Under Construction'}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {locale === 'ar'
-                    ? 'سيتم هنا عرض واجهة تسجيل المدفوعات.'
-                    : 'The payment recording interface will be here.'}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <AddNewPaymentForm />
         </TabsContent>
       </Tabs>
     </div>

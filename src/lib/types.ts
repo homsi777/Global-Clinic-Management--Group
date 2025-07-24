@@ -31,6 +31,7 @@ export interface Appointment {
   _id:string;
   patientId: string;
   status: AppointmentStatus;
+  description?: string;
   assignedRoomNumber?: number;
   calledTime?: string;
   completedTime?: string;

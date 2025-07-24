@@ -43,8 +43,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   
   const isLoading = !patients || !appointments || !transactions;
 
-  const getPatientById = (patientId: string) => {
-    return patients?.find(p => p.patientId === patientId);
+  const getPatientById = (patientId: string): Patient | undefined => {
+    if (!patients) return undefined;
+    return patients.find(p => p.patientId === patientId);
   };
   
   const updateAppointmentStatus = async (appointmentId: string, status: AppointmentStatus, roomNumber?: number) => {
@@ -81,7 +82,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const occupyingAppointment = appointments?.find(
       (apt) => apt.status === 'InRoom' && apt.assignedRoomNumber === roomNumber
     );
-    const patient = occupyingAppointment ? getPatientById(occupyingAppointment.patientId) : undefined;
+    const patient = occupyingAppointment && patients ? getPatientById(occupyingAppointment.patientId) : undefined;
     return {
       _id: `room-${roomNumber}`,
       roomNumber,

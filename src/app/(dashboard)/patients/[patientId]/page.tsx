@@ -13,6 +13,8 @@ import type { Patient } from '@/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FinancialsTable from '@/components/dashboard/financials-table';
 import AddNewPaymentForm from '@/components/dashboard/add-new-payment-form';
+import { useState } from 'react';
+import AddEditPatientSheet from '@/components/dashboard/add-edit-patient-sheet';
 
 
 export default function PatientDetailPage() {
@@ -24,6 +26,8 @@ export default function PatientDetailPage() {
 
   const patient = getPatientById(patientId);
   
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
   const patientTransactions = transactions.filter(tx => tx.patientId === patientId);
 
 
@@ -59,6 +63,7 @@ export default function PatientDetailPage() {
 
 
   return (
+    <>
     <div className="flex flex-col gap-6">
       <header className="flex items-center gap-4">
         <Button variant="outline" size="icon" onClick={() => router.back()}>
@@ -82,7 +87,7 @@ export default function PatientDetailPage() {
                 <CardTitle className="text-xl">{patient.patientName}</CardTitle>
                 <div className="flex justify-between items-center mt-1">
                     <CardDescription>{patient.patientId}</CardDescription>
-                    <Button variant="ghost" size="sm"><Edit className="h-4 w-4 mr-2" /> {locale === 'ar' ? 'تعديل' : 'Edit'}</Button>
+                    <Button variant="ghost" size="sm" onClick={() => setIsSheetOpen(true)}><Edit className="h-4 w-4 mr-2" /> {locale === 'ar' ? 'تعديل' : 'Edit'}</Button>
                 </div>
               </div>
             </CardHeader>
@@ -195,7 +200,7 @@ export default function PatientDetailPage() {
         </TabsContent>
       </Tabs>
     </div>
+    <AddEditPatientSheet isOpen={isSheetOpen} onOpenChange={setIsSheetOpen} patient={patient} />
+    </>
   );
 }
-
-    

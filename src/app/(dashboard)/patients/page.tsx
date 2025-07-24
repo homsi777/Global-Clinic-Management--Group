@@ -16,7 +16,7 @@ export default function PatientsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  const filteredPatients = patients.filter(
+  const filteredPatients = (patients || []).filter(
     (patient) =>
       patient.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       patient.patientId.toLowerCase().includes(searchQuery.toLowerCase())

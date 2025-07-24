@@ -1,6 +1,7 @@
+
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useClinicContext } from '@/components/app-provider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -107,12 +108,26 @@ export default function PatientQueue() {
 
   const PatientCard = ({ appointmentId }: { appointmentId: string }) => {
     const appointment = appointments.find(apt => apt._id === appointmentId);
-    if (!appointment) return null;
+    const patient = appointment ? getPatientById(appointment.patientId) : null;
     
-    const patient = getPatientById(appointment.patientId);
-    if (!patient) return null;
+    const [waitTime, setWaitTime] = useState<number | null>(null);
 
-    const waitTime = Math.round((Date.now() - new Date(appointment.queueTime).getTime()) / 60000);
+    useEffect(() => {
+      if (!appointment || appointment.status !== 'Waiting') return;
+
+      const calculateWaitTime = () => {
+        const time = Math.round((Date.now() - new Date(appointment.queueTime).getTime()) / 60000);
+        setWaitTime(time);
+      };
+
+      calculateWaitTime();
+      const interval = setInterval(calculateWaitTime, 60000); // Update every minute
+
+      return () => clearInterval(interval);
+    }, [appointment]);
+
+
+    if (!appointment || !patient) return null;
 
     return (
       <motion.div
@@ -131,7 +146,7 @@ export default function PatientQueue() {
           <div className="flex-1">
             <div className="flex justify-between items-center">
                 <h3 className="font-semibold">{patient.patientName}</h3>
-                {appointment.status === 'Waiting' && (
+                {appointment.status === 'Waiting' && waitTime !== null && (
                   <Badge variant="secondary" className="flex items-center gap-1.5">
                     <Clock className="h-3 w-3" />
                     {waitTime} min

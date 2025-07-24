@@ -12,11 +12,8 @@ export default function ClinicRooms() {
   const { locale } = useLocale();
   const router = useRouter();
 
-  const handleRoomClick = (roomId: string, patientId?: string) => {
-    if (patientId) {
-      router.push(`/patients/${patientId}`);
-    }
-    // Optional: Handle click on available rooms later
+  const handleRoomClick = (roomId: string) => {
+    router.push(`/rooms/${roomId}`);
   };
 
   return (
@@ -28,14 +25,12 @@ export default function ClinicRooms() {
         {rooms.map((room) => (
           <Card
             key={room._id}
-            onClick={() => handleRoomClick(room._id, room.currentPatientId)}
+            onClick={() => handleRoomClick(room._id)}
             className={cn(
-              'transition-all duration-300',
+              'transition-all duration-300 cursor-pointer hover:shadow-lg hover:-translate-y-1',
               {
                 'bg-green-50 dark:bg-green-900/20 border-green-400 dark:border-green-700': !room.isOccupied,
                 'bg-red-50 dark:bg-red-900/20 border-red-400 dark:border-red-700': room.isOccupied,
-                'cursor-pointer hover:shadow-lg hover:-translate-y-1': room.isOccupied,
-                'cursor-default': !room.isOccupied,
               }
             )}
           >

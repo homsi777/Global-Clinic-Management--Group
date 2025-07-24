@@ -5,15 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DoorClosed, DoorOpen, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLocale } from '@/components/locale-provider';
-import { useRouter } from 'next/navigation';
 
 export default function ClinicRooms() {
   const { rooms } = useClinicContext();
   const { locale } = useLocale();
-  const router = useRouter();
 
   const handleRoomClick = (roomId: string) => {
-    router.push(`/rooms/${roomId}`);
+    window.open(`/rooms/${roomId}`, '_blank');
   };
 
   return (

@@ -4,16 +4,26 @@ import React, { useEffect, useState } from 'react';
 import { useClinicContext } from '@/components/app-provider';
 import { Logo } from '@/components/icons/logo';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Hash, DoorOpen } from 'lucide-react';
+import { Hash, DoorOpen, Clock } from 'lucide-react';
+import type { Patient } from '@/lib/types';
+import { cn } from '@/lib/utils';
+
+
+interface DisplayData {
+  name: string;
+  id: string;
+  room: number;
+  calledTime: string;
+}
 
 export default function WaitingRoomPage() {
   const { currentlyCalled, getPatientById } = useClinicContext();
-  const [patient, setPatient] = useState<ReturnType<typeof getPatientById>>(null);
-  const [displayData, setDisplayData] = useState<{name: string, id: string, room: number} | null>(null);
+  const [displayData, setDisplayData] = useState<DisplayData | null>(null);
   const [currentTime, setCurrentTime] = useState('');
+  const [sessionTimer, setSessionTimer] = useState('00:00');
+  const [isPulsing, setIsPulsing] = useState(false);
 
   useEffect(() => {
-    // This function runs only on the client, preventing hydration mismatch
     const updateClientTime = () => {
       setCurrentTime(new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }));
     };
@@ -23,16 +33,44 @@ export default function WaitingRoomPage() {
   }, []);
 
   useEffect(() => {
+    let timerInterval: NodeJS.Timeout | null = null;
+
     if (currentlyCalled) {
       const calledPatient = getPatientById(currentlyCalled.patientId);
-      setPatient(calledPatient);
-      if (calledPatient && currentlyCalled.assignedRoomNumber) {
+      if (calledPatient && currentlyCalled.assignedRoomNumber && currentlyCalled.calledTime) {
         setDisplayData({
             name: calledPatient.patientName,
             id: calledPatient.patientId,
-            room: currentlyCalled.assignedRoomNumber
+            room: currentlyCalled.assignedRoomNumber,
+            calledTime: currentlyCalled.calledTime,
         });
+
+        // Start pulsing effect
+        setIsPulsing(true);
+        setTimeout(() => setIsPulsing(false), 7000); // Stop pulsing after 7 seconds
+
+        // Start session timer
+        const startTime = new Date(currentlyCalled.calledTime).getTime();
+        timerInterval = setInterval(() => {
+            const now = new Date().getTime();
+            const diff = now - startTime;
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            setSessionTimer(
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+            );
+        }, 1000);
+
       }
+    } else {
+        setDisplayData(null);
+    }
+
+    return () => {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+        }
+        setSessionTimer('00:00');
     }
   }, [currentlyCalled, getPatientById]);
 
@@ -59,7 +97,10 @@ export default function WaitingRoomPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, y: -50 }}
               transition={{ type: 'spring', duration: 0.8 }}
-              className="w-full max-w-4xl rounded-2xl bg-card p-12 text-center shadow-2xl border"
+              className={cn(
+                "w-full max-w-4xl rounded-2xl bg-card p-12 text-center shadow-2xl border transition-all duration-500",
+                isPulsing && "shadow-red-500/50 shadow-2xl border-red-500 animate-pulse"
+              )}
             >
               <p className="text-4xl font-medium text-muted-foreground font-arabic">الدور الحالي لـ</p>
               <h2 className="my-4 text-8xl font-bold text-primary tracking-tight font-arabic">
@@ -81,6 +122,10 @@ export default function WaitingRoomPage() {
                     </div>
                 </div>
               </div>
+               <div className="mt-8 flex justify-center items-center gap-3 text-muted-foreground">
+                    <Clock className="h-6 w-6" />
+                    <p className="text-2xl font-mono">{sessionTimer}</p>
+                </div>
             </motion.div>
         ) : (
             <motion.div

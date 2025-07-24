@@ -18,7 +18,6 @@ interface AppContextType {
   transactions: Transaction[];
   rooms: Room[];
   currentlyCalled: Appointment | null;
-  setCurrentlyCalled: (appointment: Appointment | null) => void;
   updateAppointmentStatus: (appointmentId: string, status: AppointmentStatus, roomNumber?: number) => void;
   getPatientById: (patientId: string) => Patient | undefined;
   currentUser: User;
@@ -84,7 +83,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     transactions,
     rooms,
     currentlyCalled,
-    setCurrentlyCalled,
     updateAppointmentStatus,
     getPatientById,
     currentUser,

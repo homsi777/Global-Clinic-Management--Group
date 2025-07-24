@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import type { Patient, Appointment, AppointmentStatus, Transaction, Room, User, UserRole } from '@/lib/types';
 import { mockPatients, mockAppointments, mockTransactions } from '@/lib/data';
 
@@ -17,7 +17,6 @@ interface AppContextType {
   appointments: Appointment[];
   transactions: Transaction[];
   rooms: Room[];
-  currentlyCalled: Appointment | null;
   updateAppointmentStatus: (appointmentId: string, status: AppointmentStatus, roomNumber?: number) => void;
   getPatientById: (patientId: string) => Patient | undefined;
   currentUser: User;
@@ -31,37 +30,54 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [patients, setPatients] = useState<Patient[]>(mockPatients);
   const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments);
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
-  const [currentlyCalled, setCurrentlyCalled] = useState<Appointment | null>(null);
   const [currentUser, setCurrentUser] = useState<User>(mockUsers[0]);
+
+  // Effect to sync appointments to localStorage for cross-tab communication
+  useEffect(() => {
+    try {
+        localStorage.setItem('appointments', JSON.stringify(appointments));
+    } catch (error) {
+        console.error("Could not write appointments to localStorage", error);
+    }
+  }, [appointments]);
+
 
   const getPatientById = (patientId: string) => {
     return patients.find(p => p.patientId === patientId);
   };
   
   const updateAppointmentStatus = (appointmentId: string, status: AppointmentStatus, roomNumber?: number) => {
-    setAppointments(prevAppointments =>
-      prevAppointments.map(apt => {
+    let updatedApt: Appointment | null = null;
+    const newAppointments = appointments.map(apt => {
         if (apt._id === appointmentId) {
-          const updatedApt = {
+          updatedApt = {
             ...apt,
             status,
             assignedRoomNumber: roomNumber ?? apt.assignedRoomNumber,
             calledTime: status === 'InRoom' ? new Date().toISOString() : apt.calledTime,
             completedTime: status === 'Completed' ? new Date().toISOString() : apt.completedTime,
           };
-          if (status === 'InRoom') {
-            setCurrentlyCalled(updatedApt);
-            // Use localStorage to sync across tabs
-            localStorage.setItem('currentlyCalled', JSON.stringify(updatedApt));
-
-          } else if (status === 'Completed' && currentlyCalled?._id === appointmentId) {
-             localStorage.removeItem('currentlyCalled');
-          }
           return updatedApt;
         }
         return apt;
-      })
-    );
+      });
+
+    setAppointments(newAppointments);
+
+    // Use localStorage to sync across tabs
+    try {
+        if (status === 'InRoom' && updatedApt) {
+            localStorage.setItem('currentlyCalled', JSON.stringify(updatedApt));
+        } else {
+            // If another patient is completed, we need to check if they were the one being called
+            const currentlyCalled = JSON.parse(localStorage.getItem('currentlyCalled') || 'null');
+            if (currentlyCalled?._id === appointmentId) {
+                localStorage.removeItem('currentlyCalled');
+            }
+        }
+    } catch (error) {
+        console.error("Could not write to localStorage", error);
+    }
   };
 
   const rooms: Room[] = Array.from({ length: TOTAL_ROOMS }, (_, i) => {
@@ -85,7 +101,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     appointments,
     transactions,
     rooms,
-    currentlyCalled,
     updateAppointmentStatus,
     getPatientById,
     currentUser,

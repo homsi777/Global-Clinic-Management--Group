@@ -1,12 +1,14 @@
+
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useClinicContext } from '@/components/app-provider';
 import { Logo } from '@/components/icons/logo';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Hash, DoorOpen, Clock } from 'lucide-react';
+import { Hash, DoorOpen, Clock, Users, UserCheck, UserX } from 'lucide-react';
 import type { Patient, Appointment } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 
 interface DisplayData {
@@ -17,12 +19,14 @@ interface DisplayData {
 }
 
 export default function WaitingRoomPage() {
-  const { getPatientById } = useClinicContext();
+  const { getPatientById, appointments: allAppointments } = useClinicContext();
   const [currentlyCalled, setCurrentlyCalled] = useState<Appointment | null>(null);
   const [displayData, setDisplayData] = useState<DisplayData | null>(null);
   const [currentTime, setCurrentTime] = useState('');
   const [sessionTimer, setSessionTimer] = useState('00:00');
   const [isPulsing, setIsPulsing] = useState(false);
+  const [waitingList, setWaitingList] = useState<Appointment[]>([]);
+  const [inRoomList, setInRoomList] = useState<Appointment[]>([]);
 
   useEffect(() => {
     const updateClientTime = () => {
@@ -33,28 +37,29 @@ export default function WaitingRoomPage() {
     return () => clearInterval(timer);
   }, []);
 
-  const handleStorageChange = useCallback((event: StorageEvent) => {
-    if (event.key === 'currentlyCalled') {
-        if (event.newValue) {
-            setCurrentlyCalled(JSON.parse(event.newValue));
-        } else {
-            setCurrentlyCalled(null);
-        }
-    }
+  const updateStateFromLocalStorage = useCallback(() => {
+    const storedCall = localStorage.getItem('currentlyCalled');
+    const allApts = JSON.parse(localStorage.getItem('appointments') || '[]') as Appointment[];
+    
+    setCurrentlyCalled(storedCall ? JSON.parse(storedCall) : null);
+    
+    setWaitingList(allApts.filter(apt => apt.status === 'Waiting'));
+    setInRoomList(allApts.filter(apt => apt.status === 'InRoom'));
   }, []);
 
-  useEffect(() => {
-    // Initial load from localStorage
-    const storedCall = localStorage.getItem('currentlyCalled');
-    if (storedCall) {
-        setCurrentlyCalled(JSON.parse(storedCall));
+  const handleStorageChange = useCallback((event: StorageEvent) => {
+    if (event.key === 'currentlyCalled' || event.key === 'appointments') {
+      updateStateFromLocalStorage();
     }
+  }, [updateStateFromLocalStorage]);
 
+  useEffect(() => {
+    updateStateFromLocalStorage();
     window.addEventListener('storage', handleStorageChange);
     return () => {
-        window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('storage', handleStorageChange);
     };
-  }, [handleStorageChange]);
+  }, [handleStorageChange, updateStateFromLocalStorage]);
 
 
   useEffect(() => {
@@ -70,11 +75,9 @@ export default function WaitingRoomPage() {
             calledTime: currentlyCalled.calledTime,
         });
 
-        // Start pulsing effect
         setIsPulsing(true);
-        setTimeout(() => setIsPulsing(false), 7000); // Stop pulsing after 7 seconds
+        setTimeout(() => setIsPulsing(false), 7000); 
 
-        // Start session timer
         const startTime = new Date(currentlyCalled.calledTime).getTime();
         timerInterval = setInterval(() => {
             const now = new Date().getTime();
@@ -99,9 +102,40 @@ export default function WaitingRoomPage() {
     }
   }, [currentlyCalled, getPatientById]);
 
+  const PatientListItem = ({ appointment }: { appointment: Appointment }) => {
+    const patient = getPatientById(appointment.patientId);
+    if (!patient) return null;
+
+    const statusConfig = {
+        'Waiting': { color: 'bg-orange-100 border-orange-500', icon: <UserCheck className="h-4 w-4 text-orange-600" />, text: 'ينتظر' },
+        'InRoom': { color: 'bg-green-100 border-green-500', icon: <DoorOpen className="h-4 w-4 text-green-600" />, text: `في غرفة ${appointment.assignedRoomNumber}` },
+        'NotArrived': { color: 'bg-red-100 border-red-500', icon: <UserX className="h-4 w-4 text-red-600" />, text: 'لم يحضر' }
+    };
+    
+    // For now, all waiting are considered "arrived". The "NotArrived" is for future implementation.
+    const currentStatus = appointment.status === 'Waiting' ? 'Waiting' : 'InRoom';
+    const config = statusConfig[currentStatus];
+
+    return (
+        <motion.div
+            layout
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 50 }}
+            className={cn('p-3 mb-3 rounded-lg border-2 flex items-center gap-3', config.color)}
+        >
+            {config.icon}
+            <div className='flex-grow'>
+                <p className="font-semibold text-gray-800">{patient.patientName}</p>
+                <p className="text-sm text-gray-600">ID: {patient.patientId}</p>
+            </div>
+            <Badge variant="outline" className='border-gray-400'>{config.text}</Badge>
+        </motion.div>
+    );
+  };
 
   return (
-    <div className="flex h-screen w-full flex-col bg-gray-100 dark:bg-gray-900" dir="rtl">
+    <div className="flex h-screen w-full bg-gray-100 dark:bg-gray-900" dir="rtl">
       <header className="flex items-center justify-between p-6 bg-white dark:bg-gray-800 shadow-md">
         <div className="flex items-center gap-3">
           <Logo className="h-10 w-10 text-primary" />
@@ -113,66 +147,78 @@ export default function WaitingRoomPage() {
           {currentTime}
         </div>
       </header>
-      <main className="flex-1 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-background to-secondary">
-        <AnimatePresence mode="wait">
-        {displayData ? (
-            <motion.div
-              key={displayData.id}
-              initial={{ opacity: 0, scale: 0.7, y: 50 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, y: -50 }}
-              transition={{ type: 'spring', duration: 0.8 }}
-              className={cn(
-                "w-full max-w-4xl rounded-2xl bg-card p-12 text-center shadow-2xl border transition-all duration-500",
-                isPulsing && "shadow-red-500/50 shadow-2xl border-red-500 animate-pulse"
-              )}
-            >
-              <p className="text-4xl font-medium text-muted-foreground font-arabic">الدور الحالي لـ</p>
-              <h2 className="my-4 text-8xl font-bold text-primary tracking-tight font-arabic">
-                {displayData.name}
-              </h2>
-              <div className="mt-10 flex justify-center divide-x-2 divide-border">
-                 <div className="px-8 flex items-center gap-4">
-                    <Hash className="h-12 w-12 text-accent" />
-                    <div>
-                        <p className="text-2xl text-muted-foreground font-arabic">رقم المريض</p>
-                        <p className="text-5xl font-semibold">{displayData.id}</p>
-                    </div>
-                </div>
-                <div className="px-8 flex items-center gap-4">
-                    <DoorOpen className="h-12 w-12 text-accent" />
-                     <div>
-                        <p className="text-2xl text-muted-foreground font-arabic">يرجى التوجه إلى</p>
-                        <p className="text-5xl font-semibold font-arabic">غرفة {displayData.room}</p>
-                    </div>
-                </div>
-              </div>
-               <div className="mt-8 flex justify-center items-center gap-3 text-muted-foreground">
-                    <Clock className="h-6 w-6" />
-                    <p className="text-2xl font-mono">{sessionTimer}</p>
-                </div>
-            </motion.div>
-        ) : (
-            <motion.div
-                key="waiting"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5 }}
-                className="text-center"
-            >
-                <h2 className="text-5xl font-semibold text-muted-foreground font-arabic">
-                    الرجاء الإنتظار...
+      <div className="flex flex-1 overflow-hidden">
+        <main className="flex-1 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-background to-secondary">
+          <AnimatePresence mode="wait">
+          {displayData ? (
+              <motion.div
+                key={displayData.id}
+                initial={{ opacity: 0, scale: 0.7, y: 50 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.8, y: -50 }}
+                transition={{ type: 'spring', duration: 0.8 }}
+                className={cn(
+                  "w-full max-w-4xl rounded-2xl bg-card p-12 text-center shadow-2xl border transition-all duration-500",
+                  isPulsing && "shadow-red-500/50 shadow-2xl border-red-500 animate-pulse"
+                )}
+              >
+                <p className="text-4xl font-medium text-muted-foreground font-arabic">الدور الحالي لـ</p>
+                <h2 className="my-4 text-8xl font-bold text-primary tracking-tight font-arabic">
+                  {displayData.name}
                 </h2>
-                <p className="mt-4 text-2xl text-muted-foreground/80 font-arabic">
-                    سيتم استدعاء المريض التالي قريباً.
-                </p>
-            </motion.div>
-        )}
-        </AnimatePresence>
-      </main>
-      <footer className="p-4 text-center text-muted-foreground bg-white dark:bg-gray-800 font-arabic">
-          نتمنى لكم يوماً سعيداً!
-      </footer>
+                <div className="mt-10 flex justify-center divide-x-2 divide-border">
+                   <div className="px-8 flex items-center gap-4">
+                      <Hash className="h-12 w-12 text-accent" />
+                      <div>
+                          <p className="text-2xl text-muted-foreground font-arabic">رقم المريض</p>
+                          <p className="text-5xl font-semibold">{displayData.id}</p>
+                      </div>
+                  </div>
+                  <div className="px-8 flex items-center gap-4">
+                      <DoorOpen className="h-12 w-12 text-accent" />
+                       <div>
+                          <p className="text-2xl text-muted-foreground font-arabic">يرجى التوجه إلى</p>
+                          <p className="text-5xl font-semibold font-arabic">غرفة {displayData.room}</p>
+                      </div>
+                  </div>
+                </div>
+                 <div className="mt-8 flex justify-center items-center gap-3 text-muted-foreground">
+                      <Clock className="h-6 w-6" />
+                      <p className="text-2xl font-mono">{sessionTimer}</p>
+                  </div>
+              </motion.div>
+          ) : (
+              <motion.div
+                  key="waiting"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5 }}
+                  className="text-center"
+              >
+                  <h2 className="text-5xl font-semibold text-muted-foreground font-arabic">
+                      الرجاء الإنتظار...
+                  </h2>
+                  <p className="mt-4 text-2xl text-muted-foreground/80 font-arabic">
+                      سيتم استدعاء المريض التالي قريباً.
+                  </p>
+              </motion.div>
+          )}
+          </AnimatePresence>
+        </main>
+        <aside className="w-1/3 p-4 bg-gray-200 dark:bg-gray-800 border-r border-gray-300 dark:border-gray-700 overflow-y-auto">
+            <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                <Users />
+                قائمة الانتظار
+            </h3>
+            <AnimatePresence>
+                {inRoomList.map(apt => <PatientListItem key={apt._id} appointment={apt} />)}
+                {waitingList.map(apt => <PatientListItem key={apt._id} appointment={apt} />)}
+            </AnimatePresence>
+            {waitingList.length === 0 && inRoomList.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center pt-8">لا يوجد مرضى في قائمة الانتظار حالياً.</p>
+            )}
+        </aside>
+      </div>
     </div>
   );
 }

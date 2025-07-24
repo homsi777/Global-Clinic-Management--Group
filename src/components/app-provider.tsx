@@ -23,6 +23,7 @@ interface AppContextType {
   getPatientById: (patientId: string) => Patient | undefined;
   deletePatient: (patientId: string) => Promise<void>;
   addOrUpdatePatient: (patientData: Partial<Patient>) => Promise<void>;
+  addAppointment: (appointmentData: Omit<Appointment, '_id' | 'status' | 'queueTime'>) => Promise<void>;
   currentUser: User;
   setCurrentUser: (user: User) => void;
   users: User[];
@@ -98,6 +99,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const addAppointment = async (appointmentData: Omit<Appointment, '_id' | 'status' | 'queueTime'>) => {
+    const newAppointment: Appointment = {
+        _id: `Apt${Date.now()}`,
+        status: 'Waiting',
+        queueTime: new Date().toISOString(),
+        ...appointmentData
+    };
+    await db.appointments.add(newAppointment);
+    const patient = getPatientById(newAppointment.patientId);
+    toast({
+        title: locale === 'ar' ? 'تمت إضافة الموعد' : 'Appointment Added',
+        description: locale === 'ar' ? `تمت جدولة موعد لـ ${patient?.patientName || 'مريض'}.` : `Appointment scheduled for ${patient?.patientName || 'a patient'}.`,
+    });
+  }
+
 
   const updateAppointmentStatus = async (appointmentId: string, status: AppointmentStatus, roomNumber?: number) => {
     const appointment = appointments?.find(apt => apt._id === appointmentId);
@@ -156,6 +172,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     getPatientById,
     deletePatient,
     addOrUpdatePatient,
+    addAppointment,
     currentUser,
     setCurrentUser,
     users: mockUsers,

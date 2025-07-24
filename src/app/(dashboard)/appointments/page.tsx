@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Megaphone, Stethoscope, CheckCircle, Clock, Hash, DoorOpen } from 'lucide-react';
+import { Megaphone, Stethoscope, CheckCircle, Clock, Hash, DoorOpen, PlusCircle } from 'lucide-react';
 import { announceNextPatient } from '@/ai/flows/announce-next-patient';
 import { useToast } from '@/hooks/use-toast';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { useLocale } from '@/components/locale-provider';
 import { cn } from '@/lib/utils';
 import type { Appointment } from '@/lib/types';
+import AddAppointmentSheet from '@/components/dashboard/add-appointment-sheet';
 
 export default function AppointmentsPage() {
   const { appointments, getPatientById, updateAppointmentStatus, rooms, isLoading } = useClinicContext();
@@ -30,6 +31,7 @@ export default function AppointmentsPage() {
   const { locale } = useLocale();
   const [loadingPatientId, setLoadingPatientId] = useState<string | null>(null);
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [roomNumber, setRoomNumber] = useState('');
   
@@ -262,14 +264,21 @@ export default function AppointmentsPage() {
   }
 
   return (
+    <>
     <div className="flex flex-col gap-6">
-        <header>
-            <h1 className="text-3xl font-bold tracking-tight">
-                {locale === 'ar' ? 'إدارة المواعيد' : 'Appointment Management'}
-            </h1>
-            <p className="text-muted-foreground">
-                {locale === 'ar' ? 'عرض وتتبع جميع مواعيد المرضى.' : 'View and track all patient appointments.'}
-            </p>
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">
+                  {locale === 'ar' ? 'إدارة المواعيد' : 'Appointment Management'}
+              </h1>
+              <p className="text-muted-foreground">
+                  {locale === 'ar' ? 'عرض وتتبع جميع مواعيد المرضى.' : 'View and track all patient appointments.'}
+              </p>
+            </div>
+             <Button onClick={() => setIsSheetOpen(true)}>
+                <PlusCircle className="mr-2" />
+                {locale === 'ar' ? 'إضافة موعد جديد' : 'New Appointment'}
+            </Button>
         </header>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
             <Card>
@@ -350,5 +359,7 @@ export default function AppointmentsPage() {
             </DialogContent>
         </Dialog>
     </div>
+    <AddAppointmentSheet isOpen={isSheetOpen} onOpenChange={setIsSheetOpen} />
+    </>
   );
 }

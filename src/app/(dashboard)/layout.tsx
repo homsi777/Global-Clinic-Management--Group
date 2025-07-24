@@ -78,7 +78,7 @@ export default function DashboardLayout({
                           isActive={isActive(item.href)}
                           tooltip={{ children: locale === 'ar' ? item.labelAr : item.label }}
                           >
-                          <Link href={item.href} target={item.target}>
+                          <Link href={item.href} target={item.target || '_self'}>
                               {item.icon}
                               <span>{locale === 'ar' ? item.labelAr : item.label}</span>
                           </Link>

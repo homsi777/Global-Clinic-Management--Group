@@ -72,6 +72,31 @@ export interface Expense {
     recordedBy: string;
 }
 
+export interface Invoice {
+  _id: string;
+  invoiceNumber: string;
+  patientId: string;
+  patientName: string;
+  date: number;
+  dueDate: number;
+  items: {
+    serviceId: string;
+    serviceName: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+  }[];
+  subTotal: number;
+  discount: number;
+  tax: number;
+  totalAmount: number;
+  paidAmount: number;
+  outstandingAmount: number;
+  status: 'Pending' | 'Paid' | 'Partial' | 'Canceled';
+  notes?: string;
+  recordedBy: string;
+}
+
 
 export type UserRole = 'Admin' | 'Nurse' | 'DoctorAssistant';
 

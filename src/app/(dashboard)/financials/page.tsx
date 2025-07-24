@@ -14,10 +14,13 @@ import { useLocale } from '@/components/locale-provider';
 import { Activity, CreditCard, DollarSign, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AddNewPaymentForm from '@/components/dashboard/add-new-payment-form';
+import InvoicesTable from '@/components/dashboard/invoices-table';
 
 export default function FinancialsPage() {
   const { locale } = useLocale();
   const [activeTab, setActiveTab] = React.useState('transactions');
+  const [isInvoiceSheetOpen, setIsInvoiceSheetOpen] = React.useState(false);
+
 
   const summaryCards = [
     {
@@ -48,9 +51,13 @@ export default function FinancialsPage() {
       icon: <Activity className="h-5 w-5 text-muted-foreground" />,
     },
   ];
+  
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+  }
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col gap-6">
+    <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-col gap-6">
        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
             <h1 className="text-3xl font-bold tracking-tight">
@@ -62,10 +69,18 @@ export default function FinancialsPage() {
                 : 'Manage billing, payments, and financial records.'}
             </p>
         </div>
-         <Button onClick={() => setActiveTab('new-payment')}>
-            <PlusCircle className="mr-2" />
-            {locale === 'ar' ? 'إضافة دفعة جديدة' : 'Add New Payment'}
-          </Button>
+         {activeTab === 'transactions' && (
+            <Button onClick={() => setActiveTab('new-payment')}>
+                <PlusCircle className="mr-2" />
+                {locale === 'ar' ? 'إضافة دفعة جديدة' : 'Add New Payment'}
+            </Button>
+         )}
+         {activeTab === 'invoices' && (
+            <Button onClick={() => setIsInvoiceSheetOpen(true)}>
+                <PlusCircle className="mr-2" />
+                {locale === 'ar' ? 'إنشاء فاتورة جديدة' : 'Create New Invoice'}
+            </Button>
+         )}
       </header>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -89,13 +104,17 @@ export default function FinancialsPage() {
         ))}
       </div>
       
-      <TabsList className="grid w-full grid-cols-2">
+      <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="transactions">{locale === 'ar' ? 'سجل المعاملات' : 'Transaction History'}</TabsTrigger>
+            <TabsTrigger value="invoices">{locale === 'ar' ? 'الفواتير' : 'Invoices'}</TabsTrigger>
             <TabsTrigger value="new-payment">{locale === 'ar' ? 'إضافة دفعة جديدة' : 'Add New Payment'}</TabsTrigger>
       </TabsList>
       
       <TabsContent value="transactions">
         <FinancialsTable />
+      </TabsContent>
+       <TabsContent value="invoices">
+        <InvoicesTable />
       </TabsContent>
       <TabsContent value="new-payment">
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">

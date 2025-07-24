@@ -1,10 +1,10 @@
 'use client';
 
 import type { Patient } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Progress } from '../ui/progress';
-import { useLocale } from '../locale-provider';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
+import { useLocale } from '@/components/locale-provider';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { ArrowRight, AlertTriangle, CheckCircle2, Award } from 'lucide-react';
@@ -33,6 +33,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
     'Active Treatment': { en: 'Active Treatment', ar: 'علاج فعال' },
     'Final Phase': { en: 'Final Phase', ar: 'المرحلة النهائية' },
     'Retention Phase': { en: 'Retention Phase', ar: 'مرحلة التثبيت' },
+    'Completed': { en: 'Completed', ar: 'مكتمل' },
   };
 
   const currentStatusText = statusTranslations[patient.currentStatus][locale];
@@ -93,5 +94,3 @@ export default function PatientCard({ patient }: PatientCardProps) {
     </TooltipProvider>
   );
 }
-
-    

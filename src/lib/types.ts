@@ -4,17 +4,19 @@ export interface Patient {
   patientId: string; // Unique ID
   dateOfBirth: string;
   phone: string;
-  email: string;
-  address: string;
+  email?: string;
+  address?: string;
   startDate: string; 
-  currentStatus: 'Active Treatment' | 'Final Phase' | 'Retention Phase'; // e.g., 'Active Treatment', 'Retention Phase'
+  currentStatus: 'Active Treatment' | 'Final Phase' | 'Retention Phase' | 'Completed';
   totalSessions: number;
   completedSessions: number;
-  chiefComplaint: string;
-  notes: string;
-  avatarUrl: string;
-  outstandingBalance: number; // Added for financial status
-  remainingSessions: number; // Added for treatment progress
+  remainingSessions: number;
+  chiefComplaint?: string;
+  notes?: string;
+  avatarUrl?: string;
+  outstandingBalance: number;
+  lastVisitDate?: string;
+  nextAppointmentDate?: string;
 }
 
 export interface Room {
@@ -25,7 +27,7 @@ export interface Room {
   patientName?: string;
 }
 
-export type AppointmentStatus = 'Waiting' | 'InRoom' | 'Completed' | 'Canceled';
+export type AppointmentStatus = 'Waiting' | 'InRoom' | 'Completed' | 'Canceled' | 'Missed';
 
 export interface Appointment {
   _id:string;
@@ -36,6 +38,7 @@ export interface Appointment {
   calledTime?: string;
   completedTime?: string;
   queueTime: string;
+  doctorNotes?: string;
 }
 
 export interface Visit {
@@ -56,6 +59,8 @@ export interface Transaction {
   amount: number;
   type: 'Payment' | 'Charge';
   status: 'Paid' | 'Pending';
+  paymentMethod?: 'Cash' | 'Credit/Debit Card' | 'Bank Transfer';
+  referenceNumber?: string;
 }
 
 export type UserRole = 'Admin' | 'Nurse' | 'DoctorAssistant';

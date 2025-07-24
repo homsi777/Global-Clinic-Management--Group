@@ -12,16 +12,16 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useLocale } from '../locale-provider';
-import { Textarea } from '../ui/textarea';
+import { useLocale } from '@/components/locale-provider';
+import { Textarea } from '@/components/ui/textarea';
 import type { Patient } from '@/lib/types';
 import { Calendar } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { Calendar as CalendarComponent } from '../ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { useClinicContext } from '../app-provider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useClinicContext } from '@/components/app-provider';
 import React from 'react';
 
 

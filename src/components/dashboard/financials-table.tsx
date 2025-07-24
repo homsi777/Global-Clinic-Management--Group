@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { useLocale } from '@/components/locale-provider';
 import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { Transaction } from '@/lib/types';
 
 
@@ -117,5 +117,3 @@ export default function FinancialsTable({ transactions }: { transactions?: Trans
     </Card>
   );
 }
-
-    

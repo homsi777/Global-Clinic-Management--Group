@@ -25,13 +25,17 @@ import { useLocale } from '@/components/locale-provider';
 import { cn } from '@/lib/utils';
 
 export default function PatientQueue() {
-  const { appointments, getPatientById, updateAppointmentStatus } = useClinicContext();
+  const { appointments, getPatientById, updateAppointmentStatus, rooms } = useClinicContext();
   const { toast } = useToast();
   const { locale } = useLocale();
   const [loadingPatientId, setLoadingPatientId] = useState<string | null>(null);
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [roomNumber, setRoomNumber] = useState('');
+  
+  const occupiedRoomNumbers = useMemo(() => 
+    rooms.filter(r => r.isOccupied).map(r => r.roomNumber)
+  , [rooms]);
 
   const sortedAppointments = useMemo(() => {
     return appointments.sort((a, b) => new Date(a.queueTime).getTime() - new Date(b.queueTime).getTime());
@@ -48,6 +52,17 @@ export default function PatientQueue() {
 
   const handleConfirmCall = async () => {
     if (!selectedAppointmentId || !roomNumber) return;
+    
+    const roomNum = parseInt(roomNumber, 10);
+    if(occupiedRoomNumbers.includes(roomNum)){
+        toast({
+            variant: "destructive",
+            title: locale === 'ar' ? 'غرفة مشغولة' : "Room Occupied",
+            description: locale === 'ar' ? `الغرفة ${roomNumber} مشغولة حالياً.` : `Room ${roomNumber} is currently occupied.`,
+        });
+        return;
+    }
+
 
     const appointment = appointments.find(apt => apt._id === selectedAppointmentId);
     if (!appointment) return;
@@ -59,7 +74,11 @@ export default function PatientQueue() {
     setIsRoomModalOpen(false);
 
     try {
-      toast({
+      
+      // Update status immediately to sync visual display across tabs
+      updateAppointmentStatus(appointment._id, 'InRoom', parseInt(roomNumber, 10));
+
+       toast({
         title: locale === 'ar' ? 'جاري استدعاء المريض...' : "Calling Patient...",
         description: locale === 'ar' ? `جاري الإعلان عن ${patient.patientName}.` : `Announcing for ${patient.patientName}.`,
       });
@@ -69,9 +88,6 @@ export default function PatientQueue() {
         patientId: patient.patientId,
         roomNumber: parseInt(roomNumber, 10),
       });
-      
-      // Update status immediately to sync visual display
-      updateAppointmentStatus(appointment._id, 'InRoom', parseInt(roomNumber, 10));
 
       const audio = new Audio(result.media);
       audio.play();
@@ -90,6 +106,8 @@ export default function PatientQueue() {
         title: locale === 'ar' ? 'فشل الإعلان' : "Announcement Failed",
         description: locale === 'ar' ? 'لا يمكن إعلان المريض. يرجى المحاولة مرة أخرى.' : "Could not announce the patient. Please try again.",
       });
+      // Revert status if announcement failed
+      updateAppointmentStatus(appointment._id, 'Waiting');
     } finally {
       setLoadingPatientId(null);
       setRoomNumber('');
@@ -273,6 +291,7 @@ export default function PatientQueue() {
                 className="col-span-3"
                 type="number"
                 placeholder={locale === 'ar' ? 'مثال: 3' : 'e.g., 3'}
+                autoFocus
               />
             </div>
           </div>

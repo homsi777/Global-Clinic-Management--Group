@@ -166,7 +166,7 @@ export default function WaitingRoomPage() {
       <div className="flex flex-col w-full">
         <header className="flex items-center justify-between p-6 bg-white dark:bg-gray-800 shadow-md">
             <div className="flex items-center gap-3">
-            <Logo className="h-10 w-10 text-primary" />
+            <Logo className="h-10 w-10 text-blue-600" />
             <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">
                 العالمية جروب - غرفة الانتظار
             </h1>
@@ -176,7 +176,7 @@ export default function WaitingRoomPage() {
             </div>
         </header>
         <div className="flex flex-1 overflow-hidden">
-            <main className="flex-1 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-background to-secondary">
+            <main className="flex-1 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-gray-50 to-gray-200 dark:from-gray-900 dark:to-gray-800">
             <AnimatePresence mode="wait">
             {displayData ? (
                 <motion.div
@@ -186,31 +186,31 @@ export default function WaitingRoomPage() {
                     exit={{ opacity: 0, scale: 0.8, y: -50 }}
                     transition={{ type: 'spring', duration: 0.8 }}
                     className={cn(
-                    "w-full max-w-4xl rounded-2xl bg-card p-12 text-center shadow-2xl border transition-all duration-500",
+                    "w-full max-w-4xl rounded-2xl bg-white dark:bg-gray-800 p-12 text-center shadow-2xl border border-gray-200 dark:border-gray-700 transition-all duration-500",
                     isPulsing && "shadow-red-500/50 shadow-2xl border-red-500 animate-pulse"
                     )}
                 >
-                    <p className="text-4xl font-medium text-muted-foreground">الدور الحالي لـ</p>
-                    <h2 className="my-4 text-8xl font-bold text-primary tracking-tight">
+                    <p className="text-4xl font-medium text-gray-600 dark:text-gray-400">الدور الحالي لـ</p>
+                    <h2 className="my-4 text-8xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">
                     {displayData.name}
                     </h2>
-                    <div className="mt-10 flex justify-center divide-x-2 divide-border rtl:divide-x-reverse">
+                    <div className="mt-10 flex justify-center divide-x-2 divide-gray-200 dark:divide-gray-700 rtl:divide-x-reverse">
                     <div className="px-8 flex items-center gap-4">
-                        <Hash className="h-12 w-12 text-accent-foreground" />
+                        <Hash className="h-12 w-12 text-gray-500 dark:text-gray-400" />
                         <div>
-                            <p className="text-2xl text-muted-foreground">رقم المريض</p>
-                            <p className="text-5xl font-semibold">{displayData.id}</p>
+                            <p className="text-2xl text-gray-500 dark:text-gray-400">رقم المريض</p>
+                            <p className="text-5xl font-semibold text-gray-800 dark:text-gray-200">{displayData.id}</p>
                         </div>
                     </div>
                     <div className="px-8 flex items-center gap-4">
-                        <DoorOpen className="h-12 w-12 text-accent-foreground" />
+                        <DoorOpen className="h-12 w-12 text-gray-500 dark:text-gray-400" />
                         <div>
-                            <p className="text-2xl text-muted-foreground">يرجى التوجه إلى</p>
-                            <p className="text-5xl font-semibold">غرفة {displayData.room}</p>
+                            <p className="text-2xl text-gray-500 dark:text-gray-400">يرجى التوجه إلى</p>
+                            <p className="text-5xl font-semibold text-gray-800 dark:text-gray-200">غرفة {displayData.room}</p>
                         </div>
                     </div>
                     </div>
-                    <div className="mt-8 flex justify-center items-center gap-3 text-muted-foreground">
+                    <div className="mt-8 flex justify-center items-center gap-3 text-gray-500 dark:text-gray-400">
                         <Clock className="h-6 w-6" />
                         <p className="text-2xl font-mono">{sessionTimer}</p>
                     </div>
@@ -223,17 +223,17 @@ export default function WaitingRoomPage() {
                     transition={{ duration: 0.5 }}
                     className="text-center"
                 >
-                    <h2 className="text-5xl font-semibold text-muted-foreground">
+                    <h2 className="text-5xl font-semibold text-gray-500 dark:text-gray-400">
                         الرجاء الإنتظار...
                     </h2>
-                    <p className="mt-4 text-2xl text-muted-foreground/80">
+                    <p className="mt-4 text-2xl text-gray-400 dark:text-gray-500">
                         سيتم استدعاء المريض التالي قريباً.
                     </p>
                 </motion.div>
             )}
             </AnimatePresence>
             </main>
-            <aside className="w-1/3 max-w-sm p-4 bg-gray-200 dark:bg-gray-800 border-r border-gray-300 dark:border-gray-700 overflow-y-auto">
+            <aside className="w-1/3 max-w-sm p-4 bg-gray-100 dark:bg-gray-800/50 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
                 <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200 flex items-center gap-2">
                     <Users />
                     قائمة الانتظار
@@ -251,5 +251,3 @@ export default function WaitingRoomPage() {
     </div>
   );
 }
-
-    

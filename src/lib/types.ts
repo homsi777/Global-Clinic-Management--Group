@@ -21,7 +21,7 @@ export interface Room {
 export type AppointmentStatus = 'Waiting' | 'InRoom' | 'Completed' | 'Canceled';
 
 export interface Appointment {
-  _id: string;
+  _id:string;
   patientId: string;
   status: AppointmentStatus;
   assignedRoomNumber?: number;
@@ -48,4 +48,12 @@ export interface Transaction {
   amount: number;
   type: 'Payment' | 'Charge';
   status: 'Paid' | 'Pending';
+}
+
+export type UserRole = 'Admin' | 'Nurse' | 'DoctorAssistant';
+
+export interface User {
+  _id: string;
+  name: string;
+  role: UserRole;
 }

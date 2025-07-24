@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Users, MonitorPlay, Settings, CreditCard, Moon, Sun, Globe, FileText, ShoppingCart } from 'lucide-react';
+import { Home, Users, MonitorPlay, Settings, CreditCard, Moon, Sun, Globe, FileText, ShoppingCart, User, Users2 } from 'lucide-react';
 import { Logo } from '@/components/icons/logo';
 import {
   SidebarProvider,
@@ -20,7 +20,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/components/theme-provider';
 import { useLocale } from '@/components/locale-provider';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { useClinicContext } from '@/components/app-provider';
+import type { UserRole } from '@/lib/types';
 
 
 export default function DashboardLayout({
@@ -32,15 +34,20 @@ export default function DashboardLayout({
   const isActive = (path: string) => pathname === path;
   const { theme, setTheme } = useTheme();
   const { locale, setLocale } = useLocale();
+  const { currentUser, users, setCurrentUser } = useClinicContext();
+
 
   const navItems = [
-      { href: '/', icon: <Home />, label: 'Dashboard', labelAr: 'الشاشة الرئيسية' },
-      { href: '/patients', icon: <Users />, label: 'Patients', labelAr: 'المرضى' },
-      { href: '/financials', icon: <CreditCard />, label: 'Financials', labelAr: 'المالية' },
-      { href: '/reports', icon: <FileText />, label: 'Reports', labelAr: 'التقارير' },
-      { href: '/expenses', icon: <ShoppingCart />, label: 'Expenses', labelAr: 'المصاريف' },
-      { href: '/waiting-room', icon: <MonitorPlay />, label: 'Waiting Room', labelAr: 'شاشة الانتظار', target: '_blank' },
+      { href: '/', icon: <Home />, label: 'Dashboard', labelAr: 'الشاشة الرئيسية', roles: ['Admin', 'Nurse', 'DoctorAssistant'] as UserRole[] },
+      { href: '/patients', icon: <Users />, label: 'Patients', labelAr: 'المرضى', roles: ['Admin', 'Nurse', 'DoctorAssistant'] as UserRole[] },
+      { href: '/financials', icon: <CreditCard />, label: 'Financials', labelAr: 'المالية', roles: ['Admin'] as UserRole[] },
+      { href: '/reports', icon: <FileText />, label: 'Reports', labelAr: 'التقارير', roles: ['Admin', 'DoctorAssistant'] as UserRole[] },
+      { href: '/expenses', icon: <ShoppingCart />, label: 'Expenses', labelAr: 'المصاريف', roles: ['Admin'] as UserRole[] },
+      { href: '/waiting-room', icon: <MonitorPlay />, label: 'Waiting Room', labelAr: 'شاشة الانتظار', target: '_blank', roles: ['Admin', 'Nurse'] as UserRole[] },
   ]
+
+  const visibleNavItems = navItems.filter(item => item.roles.includes(currentUser.role));
+
 
   return (
     <SidebarProvider>
@@ -61,7 +68,7 @@ export default function DashboardLayout({
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
-                {navItems.map((item) => (
+                {visibleNavItems.map((item) => (
                     <SidebarMenuItem key={item.href}>
                         <SidebarMenuButton
                         asChild
@@ -79,6 +86,24 @@ export default function DashboardLayout({
           </SidebarContent>
           <SidebarFooter className="items-center justify-center group-data-[collapsible=icon]:gap-4">
              <div className="flex w-full flex-col gap-2 group-data-[collapsible=icon]:items-center">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-full">
+                        <User className="size-4" />
+                         <span className="group-data-[collapsible=icon]:hidden">{currentUser.name}</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuLabel>Switch Role</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {users.map(user => (
+                             <DropdownMenuItem key={user._id} onClick={() => setCurrentUser(user)}>
+                                {user.name} ({user.role})
+                            </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
               <div className="flex w-full gap-2 group-data-[collapsible=icon]:flex-col">
                  <Button
                     variant="outline"

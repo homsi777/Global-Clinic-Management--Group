@@ -1,10 +1,16 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import type { Patient, Appointment, AppointmentStatus, Transaction, Room } from '@/lib/types';
+import type { Patient, Appointment, AppointmentStatus, Transaction, Room, User, UserRole } from '@/lib/types';
 import { mockPatients, mockAppointments, mockTransactions } from '@/lib/data';
 
 const TOTAL_ROOMS = 5;
+
+const mockUsers: User[] = [
+    { _id: 'user-1', name: 'Admin User', role: 'Admin' },
+    { _id: 'user-2', name: 'Nurse User', role: 'Nurse' },
+    { _id: 'user-3', name: 'Assistant User', role: 'DoctorAssistant' },
+]
 
 interface AppContextType {
   patients: Patient[];
@@ -15,6 +21,9 @@ interface AppContextType {
   setCurrentlyCalled: (appointment: Appointment | null) => void;
   updateAppointmentStatus: (appointmentId: string, status: AppointmentStatus, roomNumber?: number) => void;
   getPatientById: (patientId: string) => Patient | undefined;
+  currentUser: User;
+  setCurrentUser: (user: User) => void;
+  users: User[];
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -24,6 +33,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments);
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [currentlyCalled, setCurrentlyCalled] = useState<Appointment | null>(null);
+  const [currentUser, setCurrentUser] = useState<User>(mockUsers[0]);
 
   const getPatientById = (patientId: string) => {
     return patients.find(p => p.patientId === patientId);
@@ -77,6 +87,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCurrentlyCalled,
     updateAppointmentStatus,
     getPatientById,
+    currentUser,
+    setCurrentUser,
+    users: mockUsers
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

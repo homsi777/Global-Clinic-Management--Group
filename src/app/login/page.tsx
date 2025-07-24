@@ -14,12 +14,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useLocale } from '@/components/locale-provider';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 export default function LoginPage() {
   const { locale } = useLocale();
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
+    <div className={cn("flex min-h-screen flex-col items-center justify-center bg-background p-4", locale === 'ar' && 'font-arabic')} dir={locale === 'ar' ? 'rtl' : 'ltr'}>
       <div className="mb-8 flex items-center gap-3 text-center">
         <Logo className="h-12 w-12 text-primary" />
         <h1 className="text-3xl font-bold text-foreground">

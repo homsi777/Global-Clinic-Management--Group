@@ -1,5 +1,7 @@
+
 'use client';
 
+import * as React from 'react';
 import {
   Card,
   CardContent,
@@ -10,11 +12,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FinancialsTable from '@/components/dashboard/financials-table';
 import { useLocale } from '@/components/locale-provider';
-import { Activity, CreditCard, DollarSign, Users } from 'lucide-react';
+import { Activity, CreditCard, DollarSign, PlusCircle, Users } from 'lucide-react';
 import AddNewPaymentForm from '@/components/dashboard/add-new-payment-form';
+import { Button } from '@/components/ui/button';
 
 export default function FinancialsPage() {
   const { locale } = useLocale();
+  const [activeTab, setActiveTab] = React.useState('transactions');
 
   const summaryCards = [
     {
@@ -48,15 +52,21 @@ export default function FinancialsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header>
-        <h1 className="text-3xl font-bold tracking-tight">
-          {locale === 'ar' ? 'المالية والمحاسبة' : 'Financials & Billing'}
-        </h1>
-        <p className="text-muted-foreground">
-          {locale === 'ar'
-            ? 'إدارة الفواتير والمدفوعات والسجلات المالية.'
-            : 'Manage billing, payments, and financial records.'}
-        </p>
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+            {locale === 'ar' ? 'المالية والمحاسبة' : 'Financials & Billing'}
+            </h1>
+            <p className="text-muted-foreground">
+            {locale === 'ar'
+                ? 'إدارة الفواتير والمدفوعات والسجلات المالية.'
+                : 'Manage billing, payments, and financial records.'}
+            </p>
+        </div>
+        <Button onClick={() => setActiveTab('new-payment')}>
+            <PlusCircle className="mr-2" />
+            {locale === 'ar' ? 'إضافة دفعة جديدة' : 'Add New Payment'}
+        </Button>
       </header>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -80,7 +90,7 @@ export default function FinancialsPage() {
         ))}
       </div>
 
-      <Tabs defaultValue="transactions">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="transactions">
             {locale === 'ar' ? 'سجل المعاملات' : 'Transaction History'}

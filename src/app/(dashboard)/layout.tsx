@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Users, MonitorPlay, Settings, CreditCard, Moon, Sun, Globe } from 'lucide-react';
+import { Home, Users, MonitorPlay, Settings, CreditCard, Moon, Sun, Globe, FileText, ShoppingCart } from 'lucide-react';
 import { Logo } from '@/components/icons/logo';
 import {
   SidebarProvider,
@@ -33,6 +33,15 @@ export default function DashboardLayout({
   const { theme, setTheme } = useTheme();
   const { locale, setLocale } = useLocale();
 
+  const navItems = [
+      { href: '/', icon: <Home />, label: 'Dashboard', labelAr: 'الشاشة الرئيسية' },
+      { href: '/patients', icon: <Users />, label: 'Patients', labelAr: 'المرضى' },
+      { href: '/financials', icon: <CreditCard />, label: 'Financials', labelAr: 'المالية' },
+      { href: '/reports', icon: <FileText />, label: 'Reports', labelAr: 'التقارير' },
+      { href: '/expenses', icon: <ShoppingCart />, label: 'Expenses', labelAr: 'المصاريف' },
+      { href: '/waiting-room', icon: <MonitorPlay />, label: 'Waiting Room', labelAr: 'شاشة الانتظار', target: '_blank' },
+  ]
+
   return (
     <SidebarProvider>
       <Sidebar>
@@ -52,54 +61,20 @@ export default function DashboardLayout({
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive('/')}
-                  tooltip={{ children: 'Dashboard' }}
-                >
-                  <Link href="/">
-                    <Home />
-                    <span>Dashboard</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive('/patients')}
-                  tooltip={{ children: 'Patients' }}
-                >
-                  <Link href="/patients">
-                    <Users />
-                    <span>Patients</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive('/financials')}
-                  tooltip={{ children: 'Financials' }}
-                >
-                  <Link href="/financials">
-                    <CreditCard />
-                    <span>Financials</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive('/waiting-room')}
-                  tooltip={{ children: 'Waiting Room Screen' }}
-                >
-                  <Link href="/waiting-room" target="_blank">
-                    <MonitorPlay />
-                    <span>Waiting Room</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+                {navItems.map((item) => (
+                    <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton
+                        asChild
+                        isActive={isActive(item.href)}
+                        tooltip={{ children: locale === 'ar' ? item.labelAr : item.label }}
+                        >
+                        <Link href={item.href} target={item.target}>
+                            {item.icon}
+                            <span>{locale === 'ar' ? item.labelAr : item.label}</span>
+                        </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                ))}
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter className="items-center justify-center group-data-[collapsible=icon]:gap-4">
@@ -113,7 +88,7 @@ export default function DashboardLayout({
                   >
                     {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
                     <span className="group-data-[collapsible=icon]:hidden">
-                      {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                      {locale === 'ar' ? (theme === 'dark' ? 'وضع فاتح' : 'وضع داكن') : (theme === 'dark' ? 'Light Mode' : 'Dark Mode')}
                     </span>
                   </Button>
                   <DropdownMenu>
@@ -134,10 +109,14 @@ export default function DashboardLayout({
                   </DropdownMenu>
               </div>
 
-              <Button variant="outline" size="sm" className="w-full">
-                <Settings className="size-4" />
-                <span className="group-data-[collapsible=icon]:hidden">Settings</span>
-              </Button>
+              <Link href="/settings" className="w-full">
+                 <Button variant="outline" size="sm" className="w-full">
+                    <Settings className="size-4" />
+                    <span className="group-data-[collapsible=icon]:hidden">
+                        {locale === 'ar' ? 'الإعدادات' : 'Settings'}
+                    </span>
+                </Button>
+              </Link>
             </div>
             <SidebarTrigger className="self-end justify-self-end group-data-[collapsible=icon]:self-center group-data-[collapsible=icon]:justify-self-center [&_svg]:size-5" />
           </SidebarFooter>

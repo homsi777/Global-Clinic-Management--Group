@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import type { Appointment, Patient } from '@/lib/types';
@@ -17,8 +17,8 @@ const PatientListItem = ({ appointment }: { appointment: Appointment }) => {
     if (!patient) return null;
 
     const statusConfig = {
-        'Waiting': { color: 'bg-orange-100 border-orange-500', icon: <UserCheck className="h-4 w-4 text-orange-600" />, text: 'ينتظر' },
-        'InRoom': { color: 'bg-green-100 border-green-500', icon: <DoorOpen className="h-4 w-4 text-green-600" />, text: `في غرفة ${appointment.assignedRoomNumber}` },
+        'Waiting': { color: 'bg-orange-100 border-orange-500 text-orange-800 dark:bg-orange-900/30 dark:border-orange-500/50 dark:text-orange-300', icon: <UserCheck className="h-5 w-5 text-orange-600 dark:text-orange-400" />, text: 'ينتظر' },
+        'InRoom': { color: 'bg-green-100 border-green-500 text-green-800 dark:bg-green-900/30 dark:border-green-500/50 dark:text-green-300', icon: <DoorOpen className="h-5 w-5 text-green-600 dark:text-green-400" />, text: `في غرفة ${appointment.assignedRoomNumber}` },
     };
     
     const currentStatus = appointment.status === 'InRoom' ? 'InRoom' : 'Waiting';
@@ -30,14 +30,17 @@ const PatientListItem = ({ appointment }: { appointment: Appointment }) => {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
-            className={cn('p-3 mb-3 rounded-lg border-2 flex items-center gap-3', config.color)}
+            transition={{ duration: 0.3 }}
+            className={cn('p-4 mb-3 rounded-lg border-2 flex items-center justify-between gap-3 shadow-sm', config.color)}
         >
-            {config.icon}
-            <div className='flex-grow'>
-                <p className="font-semibold text-gray-800">{patient.patientName}</p>
-                <p className="text-sm text-gray-600">ID: {patient.patientId}</p>
+            <div className='flex items-center gap-3'>
+                {config.icon}
+                <div>
+                    <p className="font-semibold text-lg">{patient.patientName}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">ID: {patient.patientId}</p>
+                </div>
             </div>
-            <Badge variant="outline" className='border-gray-400'>{config.text}</Badge>
+            <Badge variant="outline" className={cn('border-current text-sm font-medium', config.color)}>{config.text}</Badge>
         </motion.div>
     );
   };
@@ -60,6 +63,12 @@ export default function WaitingRoomPage() {
   // Live query for waiting and in-room lists
   const waitingList = useLiveQuery(() => db.appointments.where('status').equals('Waiting').sortBy('queueTime'), []);
   const inRoomList = useLiveQuery(() => db.appointments.where('status').equals('InRoom').sortBy('queueTime'), []);
+
+  const combinedList = useMemo(() => {
+    const inRoom = inRoomList || [];
+    const waiting = waitingList || [];
+    return [...inRoom, ...waiting];
+  }, [inRoomList, waitingList]);
 
   // Update client time every second
   useEffect(() => {
@@ -176,10 +185,9 @@ export default function WaitingRoomPage() {
                     قائمة الانتظار
                 </h3>
                 <AnimatePresence>
-                    {inRoomList?.map(apt => <PatientListItem key={apt._id} appointment={apt} />)}
-                    {waitingList?.map(apt => <PatientListItem key={apt._id} appointment={apt} />)}
+                    {combinedList.map(apt => <PatientListItem key={apt._id} appointment={apt} />)}
                 </AnimatePresence>
-                {(waitingList?.length === 0 && inRoomList?.length === 0) && (
+                {combinedList.length === 0 && (
                     <p className="text-sm text-muted-foreground text-center pt-8">لا يوجد مرضى في قائمة الانتظار حالياً.</p>
                 )}
             </aside>

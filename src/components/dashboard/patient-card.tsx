@@ -24,8 +24,8 @@ export default function PatientCard({ patient }: PatientCardProps) {
   const isNearCompletion = patient.remainingSessions <= 3 && patient.remainingSessions > 0;
   const isTreatmentCompleted = patient.remainingSessions === 0 && patient.totalSessions > 0;
 
-  let cardBorderColor = 'border-transparent'; // Default transparent border
-  if(hasPaymentDue) cardBorderColor = 'border-red-500';
+  let cardBorderColor = 'border-border'; // Default border color from theme
+  if(hasPaymentDue) cardBorderColor = 'border-destructive';
   else if(isNearCompletion) cardBorderColor = 'border-orange-400';
   else if(isTreatmentCompleted) cardBorderColor = 'border-green-500';
 
@@ -41,7 +41,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
   return (
     <TooltipProvider>
     <Link href={`/patients/${patient.patientId}`} className="group">
-        <Card className={cn("flex flex-col h-full interactive-element border-l-4", cardBorderColor)}>
+        <Card className={cn("flex flex-col h-full interactive-element transition-all", cardBorderColor)}>
             <CardHeader className="flex-row items-start gap-4 space-y-0 pb-2">
                 <Avatar className="h-12 w-12">
                 <AvatarImage src={patient.avatarUrl} alt={patient.patientName} data-ai-hint="person portrait" />
@@ -54,8 +54,8 @@ export default function PatientCard({ patient }: PatientCardProps) {
                 <div className="flex flex-col space-y-1 items-center">
                     {hasPaymentDue && (
                        <Tooltip>
-                            <TooltipTrigger><AlertTriangle className="h-5 w-5 text-red-500" /></TooltipTrigger>
-                            <TooltipContent><p>{locale === 'ar' ? 'مستحقات مالية' : 'Payment Due'}</p></TooltipContent>
+                            <TooltipTrigger><AlertTriangle className="h-5 w-5 text-destructive" /></TooltipTrigger>
+                            <TooltipContent><p>{locale === 'ar' ? `عليه ${patient.outstandingBalance} ل.س` : `Due: ${patient.outstandingBalance}`}</p></TooltipContent>
                        </Tooltip>
                     )}
                      {isNearCompletion && (

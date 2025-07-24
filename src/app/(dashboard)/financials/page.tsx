@@ -11,52 +11,67 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FinancialsTable from '@/components/dashboard/financials-table';
 import { useLocale } from '@/components/locale-provider';
-import { Activity, CreditCard, DollarSign, PlusCircle } from 'lucide-react';
+import { Activity, CreditCard, DollarSign, PlusCircle, TrendingDown, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AddNewPaymentForm from '@/components/dashboard/add-new-payment-form';
 import InvoicesTable from '@/components/dashboard/invoices-table';
+import AddEditInvoiceSheet from '@/components/dashboard/add-edit-invoice-sheet';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '@/lib/db';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { subDays, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
+
 
 export default function FinancialsPage() {
   const { locale } = useLocale();
   const [activeTab, setActiveTab] = React.useState('transactions');
   const [isInvoiceSheetOpen, setIsInvoiceSheetOpen] = React.useState(false);
+  const [timeRange, setTimeRange] = React.useState('this_month');
 
 
-  const summaryCards = [
-    {
-      title: 'Total Revenue',
-      titleAr: 'إجمالي الإيرادات',
-      amount: 'SYP 45,231.89',
-      amountAr: '45,231.89 ل.س',
-      description: '+20.1% from last month',
-      descriptionAr: '+20.1% عن الشهر الماضي',
-      icon: <DollarSign className="h-5 w-5 text-muted-foreground" />,
-    },
-    {
-      title: 'Outstanding Debt',
-      titleAr: 'الديون المستحقة',
-      amount: 'SYP 1,250.00',
-      amountAr: '1,250.00 ل.س',
-      description: '+180.1% from last month',
-      descriptionAr: '+180.1% عن الشهر الماضي',
-      icon: <CreditCard className="h-5 w-5 text-muted-foreground" />,
-    },
-    {
-      title: 'Recent Transactions',
-      titleAr: 'المعاملات الأخيرة',
-      amount: '+573',
-      amountAr: '+573',
-      description: '+201 since last hour',
-      descriptionAr: '+201 منذ الساعة الماضية',
-      icon: <Activity className="h-5 w-5 text-muted-foreground" />,
-    },
-  ];
-  
+  const dateRange = React.useMemo(() => {
+    const now = new Date();
+    switch (timeRange) {
+      case 'today':
+        return { from: startOfDay(now), to: endOfDay(now) };
+      case 'last_7_days':
+        return { from: startOfDay(subDays(now, 6)), to: endOfDay(now) };
+      case 'this_month':
+        return { from: startOfMonth(now), to: endOfMonth(now) };
+      case 'this_year':
+        return { from: startOfYear(now), to: endOfYear(now) };
+      default:
+        return { from: startOfMonth(now), to: endOfMonth(now) };
+    }
+  }, [timeRange]);
+
+  const financialSummary = useLiveQuery(async () => {
+    const from = dateRange.from.getTime();
+    const to = dateRange.to.getTime();
+
+    const revenue = await db.transactions
+        .where('date').between(from, to, true, true)
+        .and(tx => tx.type === 'Payment')
+        .toArray();
+    const totalRevenue = revenue.reduce((sum, tx) => sum + tx.amount, 0);
+
+    const expenses = await db.expenses
+        .where('date').between(from, to, true, true)
+        .toArray();
+    const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+
+    const netProfit = totalRevenue - totalExpenses;
+
+    return { totalRevenue, totalExpenses, netProfit };
+  }, [dateRange]);
+
+
   const handleTabChange = (value: string) => {
     setActiveTab(value);
   }
 
   return (
+    <>
     <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-col gap-6">
        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -82,27 +97,54 @@ export default function FinancialsPage() {
             </Button>
          )}
       </header>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {summaryCards.map((card, index) => (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {locale === 'ar' ? card.titleAr : card.title}
-              </CardTitle>
-              {card.icon}
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {locale === 'ar' ? card.amountAr : card.amount}
+      
+      <Card>
+          <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>{locale === 'ar' ? 'ملخص مالي' : 'Financial Summary'}</CardTitle>
+                <Select value={timeRange} onValueChange={setTimeRange}>
+                    <SelectTrigger className='w-[180px]'>
+                        <SelectValue placeholder={locale === 'ar' ? 'اختر الفترة' : 'Select Period'} />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="today">{locale === 'ar' ? 'اليوم' : 'Today'}</SelectItem>
+                        <SelectItem value="last_7_days">{locale === 'ar' ? 'آخر 7 أيام' : 'Last 7 Days'}</SelectItem>
+                        <SelectItem value="this_month">{locale === 'ar' ? 'هذا الشهر' : 'This Month'}</SelectItem>
+                        <SelectItem value="this_year">{locale === 'ar' ? 'هذه السنة' : 'This Year'}</SelectItem>
+                    </SelectContent>
+                </Select>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {locale === 'ar' ? card.descriptionAr : card.description}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-3">
+              <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{locale === 'ar' ? 'إجمالي الإيرادات' : 'Total Revenue'}</CardTitle>
+                    <TrendingUp className="h-5 w-5 text-green-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-600">{locale === 'ar' ? `${financialSummary?.totalRevenue.toFixed(2) ?? '0.00'} ل.س` : `SYP ${financialSummary?.totalRevenue.toFixed(2) ?? '0.00'}`}</div>
+                  </CardContent>
+              </Card>
+               <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{locale === 'ar' ? 'إجمالي المصروفات' : 'Total Expenses'}</CardTitle>
+                    <TrendingDown className="h-5 w-5 text-red-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-red-600">{locale === 'ar' ? `${financialSummary?.totalExpenses.toFixed(2) ?? '0.00'} ل.س` : `SYP ${financialSummary?.totalExpenses.toFixed(2) ?? '0.00'}`}</div>
+                  </CardContent>
+              </Card>
+              <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{locale === 'ar' ? 'صافي الربح' : 'Net Profit'}</CardTitle>
+                    <DollarSign className="h-5 w-5 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{locale === 'ar' ? `${financialSummary?.netProfit.toFixed(2) ?? '0.00'} ل.س` : `SYP ${financialSummary?.netProfit.toFixed(2) ?? '0.00'}`}</div>
+                  </CardContent>
+              </Card>
+          </CardContent>
+      </Card>
       
       <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="transactions">{locale === 'ar' ? 'سجل المعاملات' : 'Transaction History'}</TabsTrigger>
@@ -139,5 +181,7 @@ export default function FinancialsPage() {
         </div>
       </TabsContent>
     </Tabs>
+    <AddEditInvoiceSheet isOpen={isInvoiceSheetOpen} onOpenChange={setIsInvoiceSheetOpen} />
+    </>
   );
 }

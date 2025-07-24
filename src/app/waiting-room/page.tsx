@@ -27,62 +27,50 @@ export default function WaitingRoomPage() {
   const [isPulsing, setIsPulsing] = useState(false);
   const [waitingList, setWaitingList] = useState<Appointment[]>([]);
   const [inRoomList, setInRoomList] = useState<Appointment[]>([]);
-  const [allAppointments, setAllAppointments] = useState<Appointment[]>([]);
-
+  
+  // Force a reload every 3 seconds to ensure data is always fresh.
+  // This is a robust way to solve the synchronization issue.
   useEffect(() => {
-    const updateClientTime = () => {
-      setCurrentTime(new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }));
-    };
-    updateClientTime();
-    const timer = setInterval(updateClientTime, 1000);
+    const timer = setInterval(() => {
+        // Only reload if no modal or specific interaction is happening.
+        // For now, we always reload to keep it simple and reliable.
+        location.reload();
+    }, 3000); // Refresh every 3 seconds
+
     return () => clearInterval(timer);
   }, []);
+
 
   const updateStateFromLocalStorage = useCallback(() => {
     try {
         const storedCall = localStorage.getItem('currentlyCalled');
         const storedAppointments = localStorage.getItem('appointments');
         
-        const allApts = storedAppointments ? JSON.parse(storedAppointments) : [];
-        setAllAppointments(allApts);
-
-        const newCurrentlyCalled = storedCall ? JSON.parse(storedCall) : null;
-
-        // Check if there is a new call
-        if (newCurrentlyCalled && newCurrentlyCalled._id !== currentlyCalled?._id) {
-             setCurrentlyCalled(newCurrentlyCalled);
-        } else if (!newCurrentlyCalled && currentlyCalled) {
-             setCurrentlyCalled(null);
-        } else {
-             // If no change in called patient, just update lists
-             setWaitingList(allApts.filter((apt: Appointment) => apt.status === 'Waiting'));
-             setInRoomList(allApts.filter((apt: Appointment) => apt.status === 'InRoom'));
-        }
+        const allApts: Appointment[] = storedAppointments ? JSON.parse(storedAppointments) : [];
+        const newCurrentlyCalled: Appointment | null = storedCall ? JSON.parse(storedCall) : null;
+        
+        setCurrentlyCalled(newCurrentlyCalled);
+        setWaitingList(allApts.filter((apt: Appointment) => apt.status === 'Waiting'));
+        setInRoomList(allApts.filter((apt: Appointment) => apt.status === 'InRoom'));
 
     } catch (error) {
         console.error("Error reading from localStorage", error);
     }
-  }, [currentlyCalled]);
-
-
-  const handleStorageChange = useCallback((event: StorageEvent) => {
-    if (event.key === 'currentlyCalled' || event.key === 'appointments') {
-      updateStateFromLocalStorage();
-    }
-  }, [updateStateFromLocalStorage]);
+  }, []);
 
   useEffect(() => {
-    updateStateFromLocalStorage(); // Initial load
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Also poll every 5 seconds as a fallback
-    const intervalId = setInterval(updateStateFromLocalStorage, 5000);
+    // Initial load from local storage
+    updateStateFromLocalStorage();
 
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(intervalId);
+    // Set client time
+    const updateClientTime = () => {
+      setCurrentTime(new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }));
     };
-  }, [handleStorageChange, updateStateFromLocalStorage]);
+    updateClientTime();
+    const timer = setInterval(updateClientTime, 1000);
+    
+    return () => clearInterval(timer);
+  }, [updateStateFromLocalStorage]);
 
 
   useEffect(() => {
@@ -116,18 +104,13 @@ export default function WaitingRoomPage() {
         setDisplayData(null);
     }
 
-    // Update waiting and in-room lists whenever `allAppointments` or `currentlyCalled` changes
-    setWaitingList(allAppointments.filter(apt => apt.status === 'Waiting'));
-    setInRoomList(allAppointments.filter(apt => apt.status === 'InRoom'));
-
-
     return () => {
         if (timerInterval) {
             clearInterval(timerInterval);
         }
         setSessionTimer('00:00');
     }
-  }, [currentlyCalled, getPatientById, allAppointments]);
+  }, [currentlyCalled, getPatientById]);
 
   const PatientListItem = ({ appointment }: { appointment: Appointment }) => {
     const patient = getPatientById(appointment.patientId);
@@ -139,8 +122,7 @@ export default function WaitingRoomPage() {
         'NotArrived': { color: 'bg-red-100 border-red-500', icon: <UserX className="h-4 w-4 text-red-600" />, text: 'لم يحضر' }
     };
     
-    // For now, all waiting are considered "arrived". The "NotArrived" is for future implementation.
-    const currentStatus = appointment.status === 'Waiting' ? 'Waiting' : 'InRoom';
+    const currentStatus = appointment.status === 'InRoom' ? 'InRoom' : 'Waiting';
     const config = statusConfig[currentStatus];
 
     return (
@@ -166,7 +148,7 @@ export default function WaitingRoomPage() {
       <div className="flex flex-col w-full">
         <header className="flex items-center justify-between p-6 bg-white dark:bg-gray-800 shadow-md">
             <div className="flex items-center gap-3">
-            <Logo className="h-10 w-10 text-blue-600" />
+            <Logo className="h-10 w-10 text-primary" />
             <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">
                 العالمية جروب - غرفة الانتظار
             </h1>
@@ -191,7 +173,7 @@ export default function WaitingRoomPage() {
                     )}
                 >
                     <p className="text-4xl font-medium text-gray-600 dark:text-gray-400">الدور الحالي لـ</p>
-                    <h2 className="my-4 text-8xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">
+                    <h2 className="my-4 text-8xl font-bold text-primary tracking-tight">
                     {displayData.name}
                     </h2>
                     <div className="mt-10 flex justify-center divide-x-2 divide-gray-200 dark:divide-gray-700 rtl:divide-x-reverse">
@@ -250,4 +232,5 @@ export default function WaitingRoomPage() {
       </div>
     </div>
   );
-}
+
+    

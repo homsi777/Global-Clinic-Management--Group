@@ -5,10 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DoorClosed, DoorOpen, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLocale } from '@/components/locale-provider';
+import { useRouter } from 'next/navigation';
 
 export default function ClinicRooms() {
   const { rooms } = useClinicContext();
   const { locale } = useLocale();
+  const router = useRouter();
+
+  const handleRoomClick = (roomId: string, patientId?: string) => {
+    if (patientId) {
+      router.push(`/patients/${patientId}`);
+    }
+    // Optional: Handle click on available rooms later
+  };
 
   return (
     <div>
@@ -19,10 +28,16 @@ export default function ClinicRooms() {
         {rooms.map((room) => (
           <Card
             key={room._id}
-            className={cn('transition-all duration-300', {
-              'bg-green-50 dark:bg-green-900/20 border-green-400 dark:border-green-700': !room.isOccupied,
-              'bg-red-50 dark:bg-red-900/20 border-red-400 dark:border-red-700': room.isOccupied,
-            })}
+            onClick={() => handleRoomClick(room._id, room.currentPatientId)}
+            className={cn(
+              'transition-all duration-300',
+              {
+                'bg-green-50 dark:bg-green-900/20 border-green-400 dark:border-green-700': !room.isOccupied,
+                'bg-red-50 dark:bg-red-900/20 border-red-400 dark:border-red-700': room.isOccupied,
+                'cursor-pointer hover:shadow-lg hover:-translate-y-1': room.isOccupied,
+                'cursor-default': !room.isOccupied,
+              }
+            )}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">

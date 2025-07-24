@@ -5,7 +5,7 @@ import { useLocale } from '@/components/locale-provider';
 import { useRouter, useParams } from 'next/navigation';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Edit, Phone, Mail, MapPin, Calendar, FileText, BriefcaseMedical, TrendingUp, AlertTriangle, Award, DoorOpen, PlusCircle } from 'lucide-react';
+import { ArrowLeft, Edit, Phone, Mail, MapPin, Calendar, FileText, BriefcaseMedical, TrendingUp, AlertTriangle, Award, DoorOpen, PlusCircle, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -88,9 +88,14 @@ export default function PatientDetailPage() {
                     <div className="flex items-center gap-3"><MapPin className="h-4 w-4 text-primary" /> <span>{patient.address}</span></div>
                     <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-primary" /> <span>{locale === 'ar' ? 'تاريخ الميلاد: ' : 'DOB: '} {new Date(patient.dateOfBirth).toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-US')}</span></div>
                 </div>
-                 <Button className="w-full mt-6">
-                    <PlusCircle className="mr-2" /> {locale === 'ar' ? 'حجز موعد جديد' : 'Book New Appointment'}
-                </Button>
+                <div className="mt-6 flex flex-col gap-2">
+                    <Button>
+                        <PlusCircle className="mr-2" /> {locale === 'ar' ? 'حجز موعد جديد' : 'Book New Appointment'}
+                    </Button>
+                     <Button variant="outline">
+                        <CreditCard className="mr-2" /> {locale === 'ar' ? 'إضافة دفعة جديدة' : 'Add New Payment'}
+                    </Button>
+                </div>
             </CardContent>
           </Card>
 

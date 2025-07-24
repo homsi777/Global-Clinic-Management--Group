@@ -75,7 +75,6 @@ export default function PatientQueue() {
 
     try {
       
-      // Update status immediately to sync visual display across tabs
       updateAppointmentStatus(appointment._id, 'InRoom', parseInt(roomNumber, 10));
 
        toast({
@@ -106,7 +105,6 @@ export default function PatientQueue() {
         title: locale === 'ar' ? 'فشل الإعلان' : "Announcement Failed",
         description: locale === 'ar' ? 'لا يمكن إعلان المريض. يرجى المحاولة مرة أخرى.' : "Could not announce the patient. Please try again.",
       });
-      // Revert status if announcement failed
       updateAppointmentStatus(appointment._id, 'Waiting');
     } finally {
       setLoadingPatientId(null);

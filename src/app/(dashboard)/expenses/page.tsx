@@ -1,6 +1,7 @@
 'use client';
 
 import { useLocale } from '@/components/locale-provider';
+import { Receipt } from 'lucide-react';
 
 export default function ExpensesPage() {
   const { locale } = useLocale();
@@ -8,7 +9,8 @@ export default function ExpensesPage() {
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            <Receipt className="h-8 w-8 text-primary" />
             {locale === 'ar' ? 'المصاريف' : 'Expenses'}
         </h1>
         <p className="text-muted-foreground">

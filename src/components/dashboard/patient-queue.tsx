@@ -22,6 +22,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useLocale } from '@/components/locale-provider';
+import { cn } from '@/lib/utils';
 
 export default function PatientQueue() {
   const { appointments, getPatientById, updateAppointmentStatus } = useClinicContext();
@@ -59,7 +60,7 @@ export default function PatientQueue() {
 
     try {
       toast({
-        title: locale === 'ar' ? 'جاري الاتصال بالمريض...' : "Calling Patient...",
+        title: locale === 'ar' ? 'جاري استدعاء المريض...' : "Calling Patient...",
         description: locale === 'ar' ? `جاري الإعلان عن ${patient.patientName}.` : `Announcing for ${patient.patientName}.`,
       });
 
@@ -122,7 +123,7 @@ export default function PatientQueue() {
     
         const calculateWaitTime = () => {
             const timeDiff = Math.round((Date.now() - new Date(appointment.queueTime).getTime()) / 60000);
-            const timeString = locale === 'ar' ? `${timeDiff} دقيقة` : `${timeDiff} min`;
+            const timeString = locale === 'ar' ? `${timeDiff} د` : `${timeDiff} min`;
             setWaitTime(timeString);
         };
     
@@ -135,14 +136,20 @@ export default function PatientQueue() {
 
     if (!appointment || !patient) return null;
 
+    const cardStatusStyles = {
+        Waiting: 'border-l-4 border-l-blue-500',
+        InRoom: 'border-l-4 border-l-red-500',
+        Completed: 'border-l-4 border-l-green-500 opacity-70'
+    }
+
     return (
       <motion.div
         layout
-        initial={{ opacity: 0, y: 50, scale: 0.8 }}
+        initial={{ opacity: 0, y: 20, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+        exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
-        className="rounded-lg border bg-card text-card-foreground shadow-sm mb-4"
+        className={cn("rounded-lg border bg-card text-card-foreground shadow-sm mb-4", cardStatusStyles[appointment.status])}
       >
         <div className="p-4 flex items-start space-x-4 rtl:space-x-reverse">
           <Avatar className="h-12 w-12">
@@ -153,42 +160,50 @@ export default function PatientQueue() {
             <div className="flex justify-between items-center">
                 <h3 className="font-semibold">{patient.patientName}</h3>
                 {appointment.status === 'Waiting' && waitTime !== null && (
-                  <Badge variant="secondary" className="flex items-center gap-1.5">
+                  <Badge variant="outline" className="flex items-center gap-1.5 border-blue-500 text-blue-600">
                     <Clock className="h-3 w-3" />
                     {waitTime}
                   </Badge>
                 )}
                 {appointment.status === 'InRoom' && (
-                  <Badge variant="default" className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600">
+                  <Badge variant="default" className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600">
                     <DoorOpen className="h-3 w-3" />
                     {locale === 'ar' ? `غرفة ${appointment.assignedRoomNumber}` : `Room ${appointment.assignedRoomNumber}`}
                   </Badge>
+                )}
+                {appointment.status === 'Completed' && (
+                     <Badge variant="default" className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600">
+                        <CheckCircle className="h-3 w-3" />
+                        {locale === 'ar' ? 'مكتمل' : 'Completed'}
+                    </Badge>
                 )}
             </div>
             <p className="text-sm text-muted-foreground flex items-center gap-1.5"><Hash className="h-3 w-3" /> {patient.patientId}</p>
           </div>
         </div>
-        <div className="px-4 pb-4 flex justify-end gap-2">
-            {appointment.status === 'Waiting' && (
-              <Button onClick={() => handleCallClick(appointment._id)} disabled={loadingPatientId === appointment._id} size="sm">
-                <Megaphone className="ml-0 rtl:ml-2 mr-2 rtl:mr-0 h-4 w-4" />
-                {loadingPatientId === appointment._id ? (locale === 'ar' ? 'جاري الاتصال...' : 'Calling...') : (locale === 'ar' ? 'استدعاء المريض' : 'Call Patient')}
-              </Button>
-            )}
-            {appointment.status === 'InRoom' && (
-              <Button onClick={() => handleComplete(appointment._id)} size="sm" variant="outline">
-                <CheckCircle className="ml-0 rtl:ml-2 mr-2 rtl:mr-0 h-4 w-4" />
-                {locale === 'ar' ? 'وضع علامة كمكتمل' : 'Mark as Complete'}
-              </Button>
-            )}
-        </div>
+        {(appointment.status === 'Waiting' || appointment.status === 'InRoom') && (
+            <div className="px-4 pb-4 flex justify-end gap-2">
+                {appointment.status === 'Waiting' && (
+                <Button onClick={() => handleCallClick(appointment._id)} disabled={loadingPatientId === appointment._id} size="sm">
+                    <Megaphone className="ml-0 rtl:ml-2 mr-2 rtl:mr-0 h-4 w-4" />
+                    {loadingPatientId === appointment._id ? (locale === 'ar' ? 'جاري الاستدعاء...' : 'Calling...') : (locale === 'ar' ? 'استدعاء' : 'Call')}
+                </Button>
+                )}
+                {appointment.status === 'InRoom' && (
+                <Button onClick={() => handleComplete(appointment._id)} size="sm" variant="outline">
+                    <CheckCircle className="ml-0 rtl:ml-2 mr-2 rtl:mr-0 h-4 w-4" />
+                    {locale === 'ar' ? 'إنهاء' : 'Complete'}
+                </Button>
+                )}
+            </div>
+        )}
       </motion.div>
     );
   };
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-lg font-medium">{locale === 'ar' ? 'في الانتظار' : 'Waiting'}</CardTitle>
@@ -241,7 +256,7 @@ export default function PatientQueue() {
           <DialogHeader>
             <DialogTitle>{locale === 'ar' ? 'تخصيص غرفة' : 'Assign Room'}</DialogTitle>
             <DialogDescription>
-              {locale === 'ar' ? 'أدخل رقم الغرفة للمريض قبل الاتصال.' : 'Enter the room number for the patient before calling.'}
+              {locale === 'ar' ? 'أدخل رقم الغرفة للمريض قبل استدعائه.' : 'Enter the room number for the patient before calling.'}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -261,7 +276,7 @@ export default function PatientQueue() {
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setIsRoomModalOpen(false)}>{locale === 'ar' ? 'إلغاء' : 'Cancel'}</Button>
-            <Button type="submit" onClick={handleConfirmCall}>{locale === 'ar' ? 'استدعاء المريض' : 'Call Patient'}</Button>
+            <Button type="submit" onClick={handleConfirmCall}>{locale === 'ar' ? 'استدعاء وتوجيه' : 'Call & Assign'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

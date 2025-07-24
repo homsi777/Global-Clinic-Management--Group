@@ -19,9 +19,9 @@ export default function ClinicRooms() {
         {rooms.map((room) => (
           <Card
             key={room._id}
-            className={cn('transition-colors', {
-              'bg-green-100 dark:bg-green-900/30 border-green-500': !room.isOccupied,
-              'bg-red-100 dark:bg-red-900/30 border-red-500': room.isOccupied,
+            className={cn('transition-all duration-300', {
+              'bg-green-50 dark:bg-green-900/20 border-green-400 dark:border-green-700': !room.isOccupied,
+              'bg-red-50 dark:bg-red-900/20 border-red-400 dark:border-red-700': room.isOccupied,
             })}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -29,24 +29,24 @@ export default function ClinicRooms() {
                 {locale === 'ar' ? 'غرفة' : 'Room'} {room.roomNumber}
               </CardTitle>
               {room.isOccupied ? (
-                <DoorClosed className="h-5 w-5 text-red-600 dark:text-red-400" />
+                <DoorClosed className="h-5 w-5 text-red-500" />
               ) : (
-                <DoorOpen className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <DoorOpen className="h-5 w-5 text-green-500" />
               )}
             </CardHeader>
             <CardContent>
               {room.isOccupied ? (
                 <>
-                  <div className="text-lg font-bold text-red-800 dark:text-red-200">
-                    {locale === 'ar' ? 'محجوزة' : 'Occupied'}
+                  <div className="text-lg font-bold text-red-700 dark:text-red-300">
+                    {locale === 'ar' ? 'مشغولة' : 'Occupied'}
                   </div>
-                  <div className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1 mt-1">
+                  <div className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1 mt-1 truncate">
                     <User className="h-3 w-3" />
                     <span>{room.patientName}</span>
                   </div>
                 </>
               ) : (
-                <div className="text-lg font-bold text-green-800 dark:text-green-200">
+                <div className="text-lg font-bold text-green-700 dark:text-green-300">
                   {locale === 'ar' ? 'متاحة' : 'Available'}
                 </div>
               )}

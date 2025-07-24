@@ -35,6 +35,12 @@ const announceNextPatientFlow = ai.defineFlow(
     outputSchema: AnnounceNextPatientOutputSchema,
   },
   async input => {
+    // If no API key, return empty media to avoid crashing.
+    if (!process.env.GEMINI_API_KEY) {
+      console.warn("GEMINI_API_KEY not found. Skipping TTS generation.");
+      return { media: '' };
+    }
+
     // Construct the announcement text in Arabic, repeating it three times.
     const announcementText = `المريض ${input.patientName}, رقم الهوية ${input.patientId}, يرجى التوجه إلى الغرفة رقم ${input.roomNumber}. `.repeat(3);
 

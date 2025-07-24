@@ -34,39 +34,45 @@ const announceNextPatientFlow = ai.defineFlow(
     inputSchema: AnnounceNextPatientInputSchema,
     outputSchema: AnnounceNextPatientOutputSchema,
   },
-  async input => {
-    // If no API key, return empty media to avoid crashing.
+  async (input) => {
+    // If no API key, return empty media to avoid crashing and allow fallback.
     if (!process.env.GEMINI_API_KEY) {
-      console.warn("GEMINI_API_KEY not found. Skipping TTS generation.");
+      console.warn("GEMINI_API_KEY not found. Skipping TTS generation, client will fall back to Web Speech API.");
       return { media: '' };
     }
 
-    // Construct the announcement text in Arabic, repeating it three times.
-    const announcementText = `المريض ${input.patientName}, رقم الهوية ${input.patientId}, يرجى التوجه إلى الغرفة رقم ${input.roomNumber}. `.repeat(3);
+    try {
+      // Construct the announcement text in Arabic, repeating it three times.
+      const announcementText = `المريض ${input.patientName}, رقم الهوية ${input.patientId}, يرجى التوجه إلى الغرفة رقم ${input.roomNumber}. `.repeat(3);
 
-    const {media} = await ai.generate({
-      model: 'googleai/gemini-2.5-flash-preview-tts',
-      config: {
-        responseModalities: ['AUDIO'],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: {voiceName: 'Algenib'},
+      const {media} = await ai.generate({
+        model: 'googleai/gemini-2.5-flash-preview-tts',
+        config: {
+          responseModalities: ['AUDIO'],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: {voiceName: 'Algenib'},
+            },
           },
         },
-      },
-      prompt: announcementText,
-    });
+        prompt: announcementText,
+      });
 
-    if (!media) {
-      throw new Error('no media returned');
+      if (!media) {
+        throw new Error('no media returned');
+      }
+      const audioBuffer = Buffer.from(
+        media.url.substring(media.url.indexOf(',') + 1),
+        'base64'
+      );
+      return {
+        media: 'data:audio/wav;base64,' + (await toWav(audioBuffer)),
+      };
+    } catch (error) {
+        console.error("Error generating TTS with Genkit:", error);
+        // In case of any error (network, model etc.), return empty media for client-side fallback.
+        return { media: '' };
     }
-    const audioBuffer = Buffer.from(
-      media.url.substring(media.url.indexOf(',') + 1),
-      'base64'
-    );
-    return {
-      media: 'data:audio/wav;base64,' + (await toWav(audioBuffer)),
-    };
   }
 );
 

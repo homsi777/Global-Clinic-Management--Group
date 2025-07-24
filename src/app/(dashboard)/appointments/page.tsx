@@ -49,6 +49,17 @@ export default function AppointmentsPage() {
     setSelectedAppointmentId(appointmentId);
     setIsRoomModalOpen(true);
   };
+  
+  const speakAnnouncementFallback = (text: string) => {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ar-SA';
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    } else {
+      console.warn("Web Speech API is not supported by this browser.");
+    }
+  }
 
   const handleConfirmCall = async () => {
     if (!selectedAppointmentId || !roomNumber) return;
@@ -87,15 +98,26 @@ export default function AppointmentsPage() {
         roomNumber: roomNum,
       });
 
-      const audio = new Audio(result.media);
-      audio.play();
-      
-      audio.onended = () => {
+      if (result.media) {
+        // Play audio from Genkit if available
+        const audio = new Audio(result.media);
+        audio.play();
+        audio.onended = () => {
+            toast({
+            title: locale === 'ar' ? 'تم استدعاء المريض' : "Patient Called",
+            description: locale === 'ar' ? `تم توجيه ${patient.patientName} إلى الغرفة ${roomNumber}.` : `${patient.patientName} has been directed to room ${roomNumber}.`,
+            });
+        };
+      } else {
+        // Fallback to browser's Web Speech API
+        console.log("Using Web Speech API fallback for announcement.");
+        const announcementText = `المريض ${patient.patientName}, رقم الهوية ${patient.patientId}, يرجى التوجه إلى الغرفة رقم ${roomNum}. `.repeat(3);
+        speakAnnouncementFallback(announcementText);
         toast({
-          title: locale === 'ar' ? 'تم استدعاء المريض' : "Patient Called",
-          description: locale === 'ar' ? `تم توجيه ${patient.patientName} إلى الغرفة ${roomNumber}.` : `${patient.patientName} has been directed to room ${roomNumber}.`,
+            title: locale === 'ar' ? 'تم استدعاء المريض (محلياً)' : "Patient Called (Locally)",
+            description: locale === 'ar' ? `تم توجيه ${patient.patientName} إلى الغرفة ${roomNumber}.` : `${patient.patientName} has been directed to room ${roomNumber}.`,
         });
-      };
+      }
       
     } catch (error) {
       console.error("Failed to announce patient:", error);

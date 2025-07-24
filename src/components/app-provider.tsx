@@ -150,7 +150,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const roomNumber = i + 1;
     // A room is considered occupied only if a patient is actively in consultation
     const occupyingAppointment = appointments?.find(
-      (apt) => apt.status === 'InConsultation' && apt.assignedRoomNumber === roomNumber
+      (apt) => (apt.status === 'InConsultation' || apt.status === 'InRoom') && apt.assignedRoomNumber === roomNumber
     );
     const patient = occupyingAppointment && patients ? getPatientById(occupyingAppointment.patientId) : undefined;
     return {

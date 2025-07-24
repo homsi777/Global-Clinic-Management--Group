@@ -132,7 +132,7 @@ export default function ReportsPage() {
                 <TableRow key={item.name}>
                   <TableCell>
                     <Badge variant="outline" style={{ borderLeftColor: COLORS[index % COLORS.length], borderLeftWidth: '4px' }}>
-                        {statusTranslations[item.name][locale]}
+                        {statusTranslations[item.name as Patient['currentStatus']][locale]}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center font-medium">{item.value}</TableCell>

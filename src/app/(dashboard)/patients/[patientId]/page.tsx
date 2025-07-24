@@ -2,7 +2,7 @@
 
 import { useClinicContext } from '@/components/app-provider';
 import { useLocale } from '@/components/locale-provider';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { ArrowLeft, Edit, Phone, Mail, MapPin, Calendar, FileText, BriefcaseMedical, TrendingUp, AlertTriangle, Award, DoorOpen, PlusCircle } from 'lucide-react';
@@ -13,12 +13,14 @@ import type { Patient } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 
 
-export default function PatientDetailPage({ params }: { params: { patientId: string } }) {
+export default function PatientDetailPage() {
   const { getPatientById, appointments } = useClinicContext();
   const { locale } = useLocale();
   const router = useRouter();
+  const params = useParams();
+  const patientId = typeof params.patientId === 'string' ? params.patientId : '';
 
-  const patient = getPatientById(params.patientId);
+  const patient = getPatientById(patientId);
 
   const statusTranslations: { [key in Patient['currentStatus']]: { en: string, ar: string } } = {
     'Active Treatment': { en: 'Active Treatment', ar: 'علاج فعال' },

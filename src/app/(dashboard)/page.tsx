@@ -1,4 +1,5 @@
 import PatientQueue from '@/components/dashboard/patient-queue';
+import ClinicRooms from '@/components/dashboard/clinic-rooms';
 
 export default function DashboardPage() {
   return (
@@ -9,6 +10,7 @@ export default function DashboardPage() {
           Manage patient queue and view daily progress.
         </p>
       </header>
+      <ClinicRooms />
       <PatientQueue />
     </div>
   );

@@ -15,6 +15,7 @@ export interface Room {
   roomNumber: number;
   isOccupied: boolean;
   currentPatientId?: string;
+  patientName?: string;
 }
 
 export type AppointmentStatus = 'Waiting' | 'InRoom' | 'Completed' | 'Canceled';

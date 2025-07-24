@@ -1,13 +1,16 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import type { Patient, Appointment, AppointmentStatus, Transaction } from '@/lib/types';
+import type { Patient, Appointment, AppointmentStatus, Transaction, Room } from '@/lib/types';
 import { mockPatients, mockAppointments, mockTransactions } from '@/lib/data';
+
+const TOTAL_ROOMS = 5;
 
 interface AppContextType {
   patients: Patient[];
   appointments: Appointment[];
   transactions: Transaction[];
+  rooms: Room[];
   currentlyCalled: Appointment | null;
   setCurrentlyCalled: (appointment: Appointment | null) => void;
   updateAppointmentStatus: (appointmentId: string, status: AppointmentStatus, roomNumber?: number) => void;
@@ -22,6 +25,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [currentlyCalled, setCurrentlyCalled] = useState<Appointment | null>(null);
 
+  const getPatientById = (patientId: string) => {
+    return patients.find(p => p.patientId === patientId);
+  };
+  
   const updateAppointmentStatus = (appointmentId: string, status: AppointmentStatus, roomNumber?: number) => {
     setAppointments(prevAppointments =>
       prevAppointments.map(apt => {
@@ -45,14 +52,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
   };
 
-  const getPatientById = (patientId: string) => {
-    return patients.find(p => p.patientId === patientId);
-  };
+  const rooms: Room[] = Array.from({ length: TOTAL_ROOMS }, (_, i) => {
+    const roomNumber = i + 1;
+    const occupyingAppointment = appointments.find(
+      (apt) => apt.status === 'InRoom' && apt.assignedRoomNumber === roomNumber
+    );
+    const patient = occupyingAppointment ? getPatientById(occupyingAppointment.patientId) : undefined;
+    return {
+      _id: `room-${roomNumber}`,
+      roomNumber,
+      isOccupied: !!occupyingAppointment,
+      currentPatientId: patient?.patientId,
+      patientName: patient?.patientName,
+    };
+  });
+
 
   const value = {
     patients,
     appointments,
     transactions,
+    rooms,
     currentlyCalled,
     setCurrentlyCalled,
     updateAppointmentStatus,

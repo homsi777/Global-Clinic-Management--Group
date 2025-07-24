@@ -5,6 +5,8 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import type { Patient, Appointment, AppointmentStatus, Transaction, Room, User, UserRole } from '@/lib/types';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, populate } from '@/lib/db';
+import { useToast } from '@/hooks/use-toast';
+import { useLocale } from './locale-provider';
 
 const mockUsers: User[] = [
     { _id: 'user-1', name: 'Admin User', role: 'Admin' },
@@ -20,6 +22,7 @@ interface AppContextType {
   updateAppointmentStatus: (appointmentId: string, status: AppointmentStatus, roomNumber?: number) => void;
   getPatientById: (patientId: string) => Patient | undefined;
   deletePatient: (patientId: string) => Promise<void>;
+  addOrUpdatePatient: (patientData: Partial<Patient>) => Promise<void>;
   currentUser: User;
   setCurrentUser: (user: User) => void;
   users: User[];
@@ -30,6 +33,8 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User>(mockUsers[0]);
+  const { toast } = useToast();
+  const { locale } = useLocale();
   
   // Populate DB on initial load
   useEffect(() => {
@@ -50,19 +55,49 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
   
   const deletePatient = async (patientId: string) => {
-    const patientToDelete = await db.patients.get({ patientId });
+    const patientToDelete = await db.patients.where('patientId').equals(patientId).first();
     if (!patientToDelete) return;
 
-    // Use a transaction to ensure all or nothing is deleted
     await db.transaction('rw', db.patients, db.appointments, db.transactions, async () => {
-        // Delete patient
         await db.patients.where('patientId').equals(patientId).delete();
-        // Delete associated appointments
         await db.appointments.where('patientId').equals(patientId).delete();
-        // Delete associated transactions
         await db.transactions.where('patientId').equals(patientId).delete();
     });
   };
+
+  const addOrUpdatePatient = async (patientData: Partial<Patient>) => {
+    const isEditing = !!patientData._id;
+
+    if(isEditing) {
+        await db.patients.update(patientData._id!, patientData);
+        toast({
+            title: locale === 'ar' ? 'تم تحديث البيانات' : 'Data Updated',
+            description: locale === 'ar' ? `تم تحديث بيانات المريض ${patientData.patientName} بنجاح.` : `Patient ${patientData.patientName} has been updated.`,
+        });
+    } else {
+        const newPatient: Patient = {
+            _id: `P${Date.now()}`,
+            patientId: `P${Date.now().toString().slice(-6)}`,
+            patientName: '',
+            dateOfBirth: new Date().toISOString(),
+            phone: '',
+            startDate: new Date().toISOString(),
+            currentStatus: 'Active Treatment',
+            totalSessions: 24, // default
+            completedSessions: 0,
+            remainingSessions: 24, // default
+            outstandingBalance: 0,
+            avatarUrl: `https://placehold.co/100x100.png`,
+            ...patientData
+        };
+        await db.patients.add(newPatient);
+        toast({
+            title: locale === 'ar' ? 'تمت إضافة المريض' : 'Patient Added',
+            description: locale === 'ar' ? `تم إضافة المريض ${newPatient.patientName} بنجاح.` : `Patient ${newPatient.patientName} has been added.`,
+        });
+    }
+  }
+
 
   const updateAppointmentStatus = async (appointmentId: string, status: AppointmentStatus, roomNumber?: number) => {
     const appointment = appointments?.find(apt => apt._id === appointmentId);
@@ -117,6 +152,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     updateAppointmentStatus,
     getPatientById,
     deletePatient,
+    addOrUpdatePatient,
     currentUser,
     setCurrentUser,
     users: mockUsers,

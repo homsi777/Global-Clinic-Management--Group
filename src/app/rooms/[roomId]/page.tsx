@@ -7,15 +7,13 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Megaphone, CheckCircle, Stethoscope, User, Clock, Hash } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { AppProvider } from '@/components/app-provider';
-import { LocaleProvider } from '@/components/locale-provider';
 import type { Appointment } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useMemo } from 'react';
 
-function RoomDetailPageContent() {
+export default function RoomDetailPage() {
     const params = useParams();
     const { toast } = useToast();
     const { rooms, getPatientById, appointments, updateAppointmentStatus, isLoading } = useClinicContext();
@@ -155,15 +153,4 @@ function RoomDetailPageContent() {
             </AnimatePresence>
         </div>
     );
-}
-
-
-export default function RoomDetailPage() {
-    return (
-        <LocaleProvider>
-            <AppProvider>
-                <RoomDetailPageContent />
-            </AppProvider>
-        </LocaleProvider>
-    )
 }

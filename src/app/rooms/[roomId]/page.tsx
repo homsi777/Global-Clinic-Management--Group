@@ -57,7 +57,6 @@ export default function RoomDetailPage() {
         })
     };
 
-
     if (isLoading || !room) {
         return (
             <div className="flex items-center justify-center h-screen">

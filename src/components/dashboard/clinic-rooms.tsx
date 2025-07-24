@@ -4,13 +4,17 @@ import { useClinicContext } from '@/components/app-provider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DoorClosed, DoorOpen, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLocale } from '@/components/locale-provider';
 
 export default function ClinicRooms() {
   const { rooms } = useClinicContext();
+  const { locale } = useLocale();
 
   return (
     <div>
-      <h2 className="text-2xl font-bold tracking-tight mb-4">Clinic Rooms Status</h2>
+      <h2 className="text-2xl font-bold tracking-tight mb-4">
+        {locale === 'ar' ? 'حالة غرف العيادة' : 'Clinic Rooms Status'}
+      </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {rooms.map((room) => (
           <Card
@@ -22,7 +26,7 @@ export default function ClinicRooms() {
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Room {room.roomNumber}
+                {locale === 'ar' ? 'غرفة' : 'Room'} {room.roomNumber}
               </CardTitle>
               {room.isOccupied ? (
                 <DoorClosed className="h-5 w-5 text-red-600 dark:text-red-400" />
@@ -34,7 +38,7 @@ export default function ClinicRooms() {
               {room.isOccupied ? (
                 <>
                   <div className="text-lg font-bold text-red-800 dark:text-red-200">
-                    Occupied
+                    {locale === 'ar' ? 'محجوزة' : 'Occupied'}
                   </div>
                   <div className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1 mt-1">
                     <User className="h-3 w-3" />
@@ -43,7 +47,7 @@ export default function ClinicRooms() {
                 </>
               ) : (
                 <div className="text-lg font-bold text-green-800 dark:text-green-200">
-                  Available
+                  {locale === 'ar' ? 'متاحة' : 'Available'}
                 </div>
               )}
             </CardContent>

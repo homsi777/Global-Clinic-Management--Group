@@ -21,10 +21,12 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { useLocale } from '@/components/locale-provider';
 
 export default function PatientQueue() {
   const { appointments, getPatientById, updateAppointmentStatus } = useClinicContext();
   const { toast } = useToast();
+  const { locale } = useLocale();
   const [loadingPatientId, setLoadingPatientId] = useState<string | null>(null);
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
@@ -57,8 +59,8 @@ export default function PatientQueue() {
 
     try {
       toast({
-        title: "Calling Patient...",
-        description: `Announcing for ${patient.patientName}.`,
+        title: locale === 'ar' ? 'جاري الاتصال بالمريض...' : "Calling Patient...",
+        description: locale === 'ar' ? `جاري الإعلان عن ${patient.patientName}.` : `Announcing for ${patient.patientName}.`,
       });
 
       const result = await announceNextPatient({
@@ -73,8 +75,8 @@ export default function PatientQueue() {
       audio.onended = () => {
         updateAppointmentStatus(appointment._id, 'InRoom', parseInt(roomNumber, 10));
         toast({
-          title: "Patient Called",
-          description: `${patient.patientName} has been directed to room ${roomNumber}.`,
+          title: locale === 'ar' ? 'تم استدعاء المريض' : "Patient Called",
+          description: locale === 'ar' ? `تم توجيه ${patient.patientName} إلى الغرفة ${roomNumber}.` : `${patient.patientName} has been directed to room ${roomNumber}.`,
         });
       };
       
@@ -82,8 +84,8 @@ export default function PatientQueue() {
       console.error("Failed to announce patient:", error);
       toast({
         variant: "destructive",
-        title: "Announcement Failed",
-        description: "Could not announce the patient. Please try again.",
+        title: locale === 'ar' ? 'فشل الإعلان' : "Announcement Failed",
+        description: locale === 'ar' ? 'لا يمكن إعلان المريض. يرجى المحاولة مرة أخرى.' : "Could not announce the patient. Please try again.",
       });
     } finally {
       setLoadingPatientId(null);
@@ -99,8 +101,8 @@ export default function PatientQueue() {
         const patient = getPatientById(appointment.patientId);
         if(patient) {
             toast({
-                title: "Appointment Completed",
-                description: `The appointment for ${patient.patientName} is complete.`
+                title: locale === 'ar' ? 'اكتمل الموعد' : "Appointment Completed",
+                description: locale === 'ar' ? `اكتمل موعد ${patient.patientName}.` : `The appointment for ${patient.patientName} is complete.`
             })
         }
      }
@@ -110,21 +112,25 @@ export default function PatientQueue() {
     const appointment = appointments.find(apt => apt._id === appointmentId);
     const patient = appointment ? getPatientById(appointment.patientId) : null;
     
-    const [waitTime, setWaitTime] = useState<number | null>(null);
+    const [waitTime, setWaitTime] = useState<string | null>(null);
 
     useEffect(() => {
-      if (!appointment || appointment.status !== 'Waiting') return;
-
-      const calculateWaitTime = () => {
-        const time = Math.round((Date.now() - new Date(appointment.queueTime).getTime()) / 60000);
-        setWaitTime(time);
-      };
-
-      calculateWaitTime();
-      const interval = setInterval(calculateWaitTime, 60000); // Update every minute
-
-      return () => clearInterval(interval);
-    }, [appointment]);
+        if (!appointment || appointment.status !== 'Waiting') {
+            setWaitTime(null);
+            return;
+        }
+    
+        const calculateWaitTime = () => {
+            const timeDiff = Math.round((Date.now() - new Date(appointment.queueTime).getTime()) / 60000);
+            const timeString = locale === 'ar' ? `${timeDiff} دقيقة` : `${timeDiff} min`;
+            setWaitTime(timeString);
+        };
+    
+        calculateWaitTime();
+        const interval = setInterval(calculateWaitTime, 60000); // Update every minute
+    
+        return () => clearInterval(interval);
+    }, [appointment, locale]);
 
 
     if (!appointment || !patient) return null;
@@ -138,7 +144,7 @@ export default function PatientQueue() {
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
         className="rounded-lg border bg-card text-card-foreground shadow-sm mb-4"
       >
-        <div className="p-4 flex items-start space-x-4">
+        <div className="p-4 flex items-start space-x-4 rtl:space-x-reverse">
           <Avatar className="h-12 w-12">
             <AvatarImage src={patient.avatarUrl} alt={patient.patientName} data-ai-hint="person portrait" />
             <AvatarFallback>{patient.patientName.charAt(0)}</AvatarFallback>
@@ -149,13 +155,13 @@ export default function PatientQueue() {
                 {appointment.status === 'Waiting' && waitTime !== null && (
                   <Badge variant="secondary" className="flex items-center gap-1.5">
                     <Clock className="h-3 w-3" />
-                    {waitTime} min
+                    {waitTime}
                   </Badge>
                 )}
                 {appointment.status === 'InRoom' && (
                   <Badge variant="default" className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600">
                     <DoorOpen className="h-3 w-3" />
-                    Room {appointment.assignedRoomNumber}
+                    {locale === 'ar' ? `غرفة ${appointment.assignedRoomNumber}` : `Room ${appointment.assignedRoomNumber}`}
                   </Badge>
                 )}
             </div>
@@ -165,14 +171,14 @@ export default function PatientQueue() {
         <div className="px-4 pb-4 flex justify-end gap-2">
             {appointment.status === 'Waiting' && (
               <Button onClick={() => handleCallClick(appointment._id)} disabled={loadingPatientId === appointment._id} size="sm">
-                <Megaphone className="mr-2 h-4 w-4" />
-                {loadingPatientId === appointment._id ? 'Calling...' : 'Call Patient'}
+                <Megaphone className="ml-0 rtl:ml-2 mr-2 rtl:mr-0 h-4 w-4" />
+                {loadingPatientId === appointment._id ? (locale === 'ar' ? 'جاري الاتصال...' : 'Calling...') : (locale === 'ar' ? 'استدعاء المريض' : 'Call Patient')}
               </Button>
             )}
             {appointment.status === 'InRoom' && (
               <Button onClick={() => handleComplete(appointment._id)} size="sm" variant="outline">
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Mark as Complete
+                <CheckCircle className="ml-0 rtl:ml-2 mr-2 rtl:mr-0 h-4 w-4" />
+                {locale === 'ar' ? 'وضع علامة كمكتمل' : 'Mark as Complete'}
               </Button>
             )}
         </div>
@@ -185,7 +191,7 @@ export default function PatientQueue() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-lg font-medium">Waiting</CardTitle>
+            <CardTitle className="text-lg font-medium">{locale === 'ar' ? 'في الانتظار' : 'Waiting'}</CardTitle>
             <Clock className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -193,14 +199,14 @@ export default function PatientQueue() {
                 {waitingPatients.length > 0 ? (
                     waitingPatients.map(apt => <PatientCard key={apt._id} appointmentId={apt._id} />)
                 ) : (
-                    <p className="text-muted-foreground text-center py-8">No patients waiting.</p>
+                    <p className="text-muted-foreground text-center py-8">{locale === 'ar' ? 'لا يوجد مرضى في الانتظار.' : 'No patients waiting.'}</p>
                 )}
             </AnimatePresence>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-lg font-medium">In Room</CardTitle>
+            <CardTitle className="text-lg font-medium">{locale === 'ar' ? 'داخل الغرفة' : 'In Room'}</CardTitle>
             <Stethoscope className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -208,14 +214,14 @@ export default function PatientQueue() {
                 {inRoomPatients.length > 0 ? (
                     inRoomPatients.map(apt => <PatientCard key={apt._id} appointmentId={apt._id} />)
                 ) : (
-                    <p className="text-muted-foreground text-center py-8">No patients in rooms.</p>
+                    <p className="text-muted-foreground text-center py-8">{locale === 'ar' ? 'لا يوجد مرضى في الغرف.' : 'No patients in rooms.'}</p>
                 )}
             </AnimatePresence>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-lg font-medium">Completed</CardTitle>
+            <CardTitle className="text-lg font-medium">{locale === 'ar' ? 'مكتمل' : 'Completed'}</CardTitle>
             <CheckCircle className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -223,7 +229,7 @@ export default function PatientQueue() {
                 {completedPatients.length > 0 ? (
                     completedPatients.map(apt => <PatientCard key={apt._id} appointmentId={apt._id} />)
                 ) : (
-                    <p className="text-muted-foreground text-center py-8">No completed appointments today.</p>
+                    <p className="text-muted-foreground text-center py-8">{locale === 'ar' ? 'لا توجد مواعيد مكتملة اليوم.' : 'No completed appointments today.'}</p>
                 )}
             </AnimatePresence>
           </CardContent>
@@ -233,15 +239,15 @@ export default function PatientQueue() {
        <Dialog open={isRoomModalOpen} onOpenChange={setIsRoomModalOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Assign Room</DialogTitle>
+            <DialogTitle>{locale === 'ar' ? 'تخصيص غرفة' : 'Assign Room'}</DialogTitle>
             <DialogDescription>
-              Enter the room number for the patient before calling.
+              {locale === 'ar' ? 'أدخل رقم الغرفة للمريض قبل الاتصال.' : 'Enter the room number for the patient before calling.'}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="room-number" className="text-right">
-                Room Number
+              <Label htmlFor="room-number" className="text-right rtl:text-left">
+                {locale === 'ar' ? 'رقم الغرفة' : 'Room Number'}
               </Label>
               <Input
                 id="room-number"
@@ -249,13 +255,13 @@ export default function PatientQueue() {
                 onChange={(e) => setRoomNumber(e.target.value)}
                 className="col-span-3"
                 type="number"
-                placeholder="e.g., 3"
+                placeholder={locale === 'ar' ? 'مثال: 3' : 'e.g., 3'}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsRoomModalOpen(false)}>Cancel</Button>
-            <Button type="submit" onClick={handleConfirmCall}>Call Patient</Button>
+            <Button type="button" variant="outline" onClick={() => setIsRoomModalOpen(false)}>{locale === 'ar' ? 'إلغاء' : 'Cancel'}</Button>
+            <Button type="submit" onClick={handleConfirmCall}>{locale === 'ar' ? 'استدعاء المريض' : 'Call Patient'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

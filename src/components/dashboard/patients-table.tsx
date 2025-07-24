@@ -13,9 +13,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { useLocale } from '@/components/locale-provider';
 
 export default function PatientsTable() {
   const { patients } = useClinicContext();
+  const { locale } = useLocale();
 
   return (
     <Card>
@@ -23,11 +25,11 @@ export default function PatientsTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Patient Name</TableHead>
-              <TableHead>Patient ID</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Session Progress</TableHead>
-              <TableHead className="text-right">Start Date</TableHead>
+              <TableHead>{locale === 'ar' ? 'اسم المريض' : 'Patient Name'}</TableHead>
+              <TableHead>{locale === 'ar' ? 'معرف المريض' : 'Patient ID'}</TableHead>
+              <TableHead>{locale === 'ar' ? 'الحالة' : 'Status'}</TableHead>
+              <TableHead>{locale === 'ar' ? 'تقدم الجلسة' : 'Session Progress'}</TableHead>
+              <TableHead className="text-right">{locale === 'ar' ? 'تاريخ البدء' : 'Start Date'}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -67,7 +69,7 @@ export default function PatientsTable() {
                   </div>
                 </TableCell>
                 <TableCell className="text-right text-muted-foreground">
-                  {new Date(patient.startDate).toLocaleDateString()}
+                  {new Date(patient.startDate).toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-US')}
                 </TableCell>
               </TableRow>
             ))}

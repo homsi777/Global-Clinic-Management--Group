@@ -13,6 +13,8 @@ export interface Patient {
   chiefComplaint: string;
   notes: string;
   avatarUrl: string;
+  outstandingBalance: number; // Added for financial status
+  remainingSessions: number; // Added for treatment progress
 }
 
 export interface Room {

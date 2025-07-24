@@ -16,6 +16,8 @@ export const mockPatients: Patient[] = [
     chiefComplaint: 'Crowding in lower arch and crossbite.',
     notes: 'Patient is responsive to treatment. Minor adjustments needed.',
     avatarUrl: 'https://placehold.co/100x100.png',
+    outstandingBalance: 150.00,
+    remainingSessions: 14,
   },
   {
     _id: '2',
@@ -32,6 +34,8 @@ export const mockPatients: Patient[] = [
     chiefComplaint: 'Overjet and spacing issues.',
     notes: 'Initial phase of treatment. Patient reports mild discomfort.',
     avatarUrl: 'https://placehold.co/100x100.png',
+    outstandingBalance: 0,
+    remainingSessions: 25,
   },
   {
     _id: '3',
@@ -44,10 +48,12 @@ export const mockPatients: Patient[] = [
     startDate: new Date('2022-11-01').toISOString(),
     currentStatus: 'Final Phase',
     totalSessions: 18,
-    completedSessions: 15,
+    completedSessions: 16, // Near completion
     chiefComplaint: 'Deep bite and minor rotations.',
     notes: 'Approaching end of treatment. Excellent progress.',
     avatarUrl: 'https://placehold.co/100x100.png',
+    outstandingBalance: 0,
+    remainingSessions: 2,
   },
     {
     _id: '4',
@@ -64,6 +70,8 @@ export const mockPatients: Patient[] = [
     chiefComplaint: 'Aesthetic concerns regarding front teeth alignment.',
     notes: 'New patient, first adjustment completed.',
     avatarUrl: 'https://placehold.co/100x100.png',
+    outstandingBalance: 50.00,
+    remainingSessions: 18,
   },
     {
     _id: '5',
@@ -76,10 +84,12 @@ export const mockPatients: Patient[] = [
     startDate: new Date('2021-08-19').toISOString(),
     currentStatus: 'Retention Phase',
     totalSessions: 24,
-    completedSessions: 24,
+    completedSessions: 24, // Completed
     chiefComplaint: 'Initial severe crowding.',
     notes: 'Treatment complete. Now in retention phase.',
     avatarUrl: 'https://placehold.co/100x100.png',
+    outstandingBalance: 0,
+    remainingSessions: 0,
   },
 ];
 

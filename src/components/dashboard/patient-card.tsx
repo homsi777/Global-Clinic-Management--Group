@@ -7,7 +7,9 @@ import { Progress } from '../ui/progress';
 import { useLocale } from '../locale-provider';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, AlertTriangle, CheckCircle2, Award } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+
 
 interface PatientCardProps {
   patient: Patient;
@@ -16,13 +18,16 @@ interface PatientCardProps {
 export default function PatientCard({ patient }: PatientCardProps) {
   const { locale } = useLocale();
 
-  const progressValue = (patient.completedSessions / patient.totalSessions) * 100;
+  const progressPercentage = patient.totalSessions > 0 ? (patient.completedSessions / patient.totalSessions) * 100 : 0;
   
-  const statusColors: { [key in Patient['currentStatus']]: string } = {
-    'Active Treatment': 'border-l-4 border-l-yellow-500',
-    'Final Phase': 'border-l-4 border-l-blue-500',
-    'Retention Phase': 'border-l-4 border-l-green-500',
-  };
+  const hasPaymentDue = patient.outstandingBalance > 0;
+  const isNearCompletion = patient.remainingSessions <= 3 && patient.remainingSessions > 0;
+  const isTreatmentCompleted = patient.remainingSessions === 0 && patient.totalSessions > 0;
+
+  let cardBorderColor = 'border-border';
+  if(hasPaymentDue) cardBorderColor = 'border-red-500/80';
+  else if(isNearCompletion) cardBorderColor = 'border-orange-500/80';
+  else if(isTreatmentCompleted) cardBorderColor = 'border-green-500/80';
 
   const statusTranslations: { [key in Patient['currentStatus']]: { en: string, ar: string } } = {
     'Active Treatment': { en: 'Active Treatment', ar: 'علاج فعال' },
@@ -34,32 +39,57 @@ export default function PatientCard({ patient }: PatientCardProps) {
 
 
   return (
+    <TooltipProvider>
     <Link href={`/patients/${patient.patientId}`} className="group">
-        <Card className={cn("flex flex-col h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-1", statusColors[patient.currentStatus])}>
-            <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+        <Card className={cn("flex flex-col h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border-l-4", cardBorderColor)}>
+            <CardHeader className="flex-row items-start gap-4 space-y-0 pb-2">
                 <Avatar className="h-12 w-12">
                 <AvatarImage src={patient.avatarUrl} alt={patient.patientName} data-ai-hint="person portrait" />
                 <AvatarFallback>{patient.patientName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                 </Avatar>
                 <div className="w-full overflow-hidden">
-                <CardTitle className="text-base truncate">{patient.patientName}</CardTitle>
-                <CardDescription className="truncate">{patient.patientId}</CardDescription>
+                    <CardTitle className="text-base truncate">{patient.patientName}</CardTitle>
+                    <CardDescription className="truncate">{patient.patientId}</CardDescription>
+                </div>
+                <div className="flex flex-col space-y-1 items-center">
+                    {hasPaymentDue && (
+                       <Tooltip>
+                            <TooltipTrigger><AlertTriangle className="h-5 w-5 text-red-500" /></TooltipTrigger>
+                            <TooltipContent><p>{locale === 'ar' ? 'مستحقات مالية' : 'Payment Due'}</p></TooltipContent>
+                       </Tooltip>
+                    )}
+                     {isNearCompletion && (
+                       <Tooltip>
+                            <TooltipTrigger><CheckCircle2 className="h-5 w-5 text-orange-500" /></TooltipTrigger>
+                            <TooltipContent><p>{locale === 'ar' ? 'قارب على الانتهاء' : 'Near Completion'}</p></TooltipContent>
+                       </Tooltip>
+                    )}
+                     {isTreatmentCompleted && (
+                       <Tooltip>
+                            <TooltipTrigger><Award className="h-5 w-5 text-green-500" /></TooltipTrigger>
+                            <TooltipContent><p>{locale === 'ar' ? 'العلاج مكتمل' : 'Treatment Completed'}</p></TooltipContent>
+                       </Tooltip>
+                    )}
                 </div>
             </CardHeader>
-            <CardContent className="flex-grow">
-                <div>
+            <CardContent className="flex-grow pt-2">
+                 <div>
                     <div className="flex justify-between text-xs text-muted-foreground mb-1">
                         <span>{locale === 'ar' ? 'تقدم الجلسات' : 'Session Progress'}</span>
                         <span>{patient.completedSessions}/{patient.totalSessions}</span>
                     </div>
-                    <Progress value={progressValue} className="h-2" />
+                    <Progress value={progressPercentage} className="h-2" />
+                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                       <span>{locale === 'ar' ? 'الجلسات المتبقية:' : 'Remaining:'} {patient.remainingSessions}</span>
+                    </div>
                 </div>
             </CardContent>
-            <CardFooter className="text-xs text-muted-foreground justify-between items-center">
+            <CardFooter className="text-xs text-muted-foreground justify-between items-center pt-2">
                 <span>{currentStatusText}</span>
                 <ArrowRight className={cn("h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity", locale === 'ar' && 'transform rotate-180')} />
             </CardFooter>
         </Card>
     </Link>
+    </TooltipProvider>
   );
 }

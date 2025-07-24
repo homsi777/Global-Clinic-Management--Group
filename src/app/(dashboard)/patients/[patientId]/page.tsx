@@ -5,11 +5,12 @@ import { useLocale } from '@/components/locale-provider';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Edit, Phone, Mail, MapPin, Calendar, FileText, BriefcaseMedical } from 'lucide-react';
+import { ArrowLeft, Edit, Phone, Mail, MapPin, Calendar, FileText, BriefcaseMedical, TrendingUp, AlertTriangle, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import type { Patient } from '@/lib/types';
+import { Badge } from '@/components/ui/badge';
 
 
 export default function PatientDetailPage({ params }: { params: { patientId: string } }) {
@@ -19,7 +20,7 @@ export default function PatientDetailPage({ params }: { params: { patientId: str
 
   const patient = getPatientById(params.patientId);
 
-    const statusTranslations: { [key in Patient['currentStatus']]: { en: string, ar: string } } = {
+  const statusTranslations: { [key in Patient['currentStatus']]: { en: string, ar: string } } = {
     'Active Treatment': { en: 'Active Treatment', ar: 'علاج فعال' },
     'Final Phase': { en: 'Final Phase', ar: 'المرحلة النهائية' },
     'Retention Phase': { en: 'Retention Phase', ar: 'مرحلة التثبيت' },
@@ -88,9 +89,27 @@ export default function PatientDetailPage({ params }: { params: { patientId: str
                     </div>
                     <Progress value={progressValue} />
                 </div>
-                <div className="text-sm">
-                    <p><span className="font-medium text-muted-foreground">{locale === 'ar' ? 'الحالة: ' : 'Status: '}</span>{currentStatusText}</p>
+                <div className="grid grid-cols-2 gap-4 text-sm mt-4">
+                    <div className="flex items-center gap-2 p-2 bg-secondary rounded-md">
+                        <TrendingUp className="h-5 w-5 text-primary" />
+                        <div>
+                            <div className="text-muted-foreground">{locale === 'ar' ? 'الحالة الحالية' : 'Current Status'}</div>
+                            <div className="font-semibold">{currentStatusText}</div>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 bg-secondary rounded-md">
+                         {patient.outstandingBalance > 0 ? <AlertTriangle className="h-5 w-5 text-red-500" /> : <Award className="h-5 w-5 text-green-500" />}
+                        <div>
+                            <div className="text-muted-foreground">{locale === 'ar' ? 'الحالة المالية' : 'Financials'}</div>
+                            <div className={cn("font-semibold", patient.outstandingBalance > 0 ? 'text-red-500' : 'text-green-500')}>
+                                {patient.outstandingBalance > 0 ? (locale === 'ar' ? `عليه ${patient.outstandingBalance} ل.س` : `Due ${patient.outstandingBalance}`) : (locale === 'ar' ? 'لا يوجد مستحقات' : 'All Clear')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className='text-sm mt-4'>
                     <p><span className="font-medium text-muted-foreground">{locale === 'ar' ? 'تاريخ البدء: ' : 'Start Date: '}</span>{new Date(patient.startDate).toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-US')}</p>
+                    <p><span className="font-medium text-muted-foreground">{locale === 'ar' ? 'الجلسات المتبقية: ' : 'Remaining Sessions: '}</span>{patient.remainingSessions}</p>
                 </div>
             </CardContent>
           </Card>

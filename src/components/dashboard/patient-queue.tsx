@@ -157,9 +157,9 @@ export default function PatientQueue() {
     if (!appointment || !patient) return null;
 
     const cardStatusStyles = {
-        Waiting: 'border-l-4 border-l-blue-500',
-        InRoom: 'border-l-4 border-l-red-500',
-        Completed: 'border-l-4 border-l-green-500 opacity-70'
+        Waiting: 'border-l-4 border-l-orange-500 bg-orange-500/5',
+        InRoom: 'border-l-4 border-l-red-500 bg-red-500/5',
+        Completed: 'border-l-4 border-l-green-500 bg-green-500/5 opacity-80'
     }
 
     return (
@@ -180,7 +180,7 @@ export default function PatientQueue() {
             <div className="flex justify-between items-center">
                 <h3 className="font-semibold">{patient.patientName}</h3>
                 {appointment.status === 'Waiting' && waitTime !== null && (
-                  <Badge variant="outline" className="flex items-center gap-1.5 border-blue-500 text-blue-600">
+                  <Badge variant="outline" className="flex items-center gap-1.5 border-orange-500 text-orange-600">
                     <Clock className="h-3 w-3" />
                     {waitTime}
                   </Badge>

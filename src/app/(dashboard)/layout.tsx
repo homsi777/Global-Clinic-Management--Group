@@ -61,8 +61,8 @@ export default function DashboardLayout({
                   href="/"
                   className="flex items-center gap-2 font-semibold"
                 >
-                  <Logo className="h-8 w-8 text-sidebar-primary" />
-                  <span className="text-lg font-bold group-data-[collapsible=icon]:hidden text-sidebar-foreground">
+                  <Logo className="h-8 w-8 text-primary" />
+                  <span className="text-lg font-bold group-data-[collapsible=icon]:hidden text-foreground">
                     العالمية جروب
                   </span>
                 </Link>

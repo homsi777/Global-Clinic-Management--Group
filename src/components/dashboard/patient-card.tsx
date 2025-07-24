@@ -24,10 +24,10 @@ export default function PatientCard({ patient }: PatientCardProps) {
   const isNearCompletion = patient.remainingSessions <= 3 && patient.remainingSessions > 0;
   const isTreatmentCompleted = patient.remainingSessions === 0 && patient.totalSessions > 0;
 
-  let cardBorderColor = 'border-border';
-  if(hasPaymentDue) cardBorderColor = 'border-red-500/80';
-  else if(isNearCompletion) cardBorderColor = 'border-orange-500/80';
-  else if(isTreatmentCompleted) cardBorderColor = 'border-green-500/80';
+  let cardBorderColor = 'border-transparent'; // Default transparent border
+  if(hasPaymentDue) cardBorderColor = 'border-red-500';
+  else if(isNearCompletion) cardBorderColor = 'border-orange-400';
+  else if(isTreatmentCompleted) cardBorderColor = 'border-green-500';
 
   const statusTranslations: { [key in Patient['currentStatus']]: { en: string, ar: string } } = {
     'Active Treatment': { en: 'Active Treatment', ar: 'علاج فعال' },
@@ -41,7 +41,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
   return (
     <TooltipProvider>
     <Link href={`/patients/${patient.patientId}`} className="group">
-        <Card className={cn("flex flex-col h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border-l-4", cardBorderColor)}>
+        <Card className={cn("flex flex-col h-full interactive-element border-l-4", cardBorderColor)}>
             <CardHeader className="flex-row items-start gap-4 space-y-0 pb-2">
                 <Avatar className="h-12 w-12">
                 <AvatarImage src={patient.avatarUrl} alt={patient.patientName} data-ai-hint="person portrait" />
@@ -60,7 +60,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
                     )}
                      {isNearCompletion && (
                        <Tooltip>
-                            <TooltipTrigger><CheckCircle2 className="h-5 w-5 text-orange-500" /></TooltipTrigger>
+                            <TooltipTrigger><CheckCircle2 className="h-5 w-5 text-orange-400" /></TooltipTrigger>
                             <TooltipContent><p>{locale === 'ar' ? 'قارب على الانتهاء' : 'Near Completion'}</p></TooltipContent>
                        </Tooltip>
                     )}

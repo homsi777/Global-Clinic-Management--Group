@@ -16,7 +16,7 @@ export default function ClinicRooms() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold tracking-tight mb-4 text-gray-700">
+      <h2 className="text-2xl font-bold tracking-tight mb-4">
         {locale === 'ar' ? 'حالة غرف العيادة' : 'Clinic Rooms Status'}
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -33,7 +33,7 @@ export default function ClinicRooms() {
             )}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium">
                 {locale === 'ar' ? 'غرفة' : 'Room'} {room.roomNumber}
               </CardTitle>
               {room.isOccupied ? (
@@ -45,16 +45,16 @@ export default function ClinicRooms() {
             <CardContent>
               {room.isOccupied ? (
                 <>
-                  <div className="text-lg font-bold text-blue-700">
+                  <div className="text-lg font-bold">
                     {locale === 'ar' ? 'مشغولة' : 'Occupied'}
                   </div>
-                  <div className="text-xs text-gray-500 flex items-center gap-1 mt-1 truncate">
+                  <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1 truncate">
                     <User className="h-3 w-3" />
                     <span>{room.patientName}</span>
                   </div>
                 </>
               ) : (
-                <div className="text-lg font-bold text-green-700">
+                <div className="text-lg font-bold text-green-600">
                   {locale === 'ar' ? 'متاحة' : 'Available'}
                 </div>
               )}

@@ -24,10 +24,10 @@ export default function PatientCard({ patient }: PatientCardProps) {
   const isNearCompletion = patient.remainingSessions <= 3 && patient.remainingSessions > 0;
   const isTreatmentCompleted = patient.remainingSessions === 0 && patient.totalSessions > 0;
 
-  let cardBorderColor = 'border-border'; // Default border color from theme
-  if(hasPaymentDue) cardBorderColor = 'border-destructive';
-  else if(isNearCompletion) cardBorderColor = 'border-orange-400';
-  else if(isTreatmentCompleted) cardBorderColor = 'border-green-500';
+  let cardBorderColor = 'border-border';
+  if(hasPaymentDue) cardBorderColor = 'border-destructive/80';
+  else if(isNearCompletion) cardBorderColor = 'border-orange-400/80';
+  else if(isTreatmentCompleted) cardBorderColor = 'border-green-500/80';
 
   const statusTranslations: { [key in Patient['currentStatus']]: { en: string, ar: string } } = {
     'Active Treatment': { en: 'Active Treatment', ar: 'علاج فعال' },
@@ -40,8 +40,8 @@ export default function PatientCard({ patient }: PatientCardProps) {
 
   return (
     <TooltipProvider>
-    <Link href={`/patients/${patient.patientId}`} className="group">
-        <Card className={cn("flex flex-col h-full interactive-element transition-all", cardBorderColor)}>
+    <Link href={`/patients/${patient.patientId}`} className="group block">
+        <Card className={cn("flex flex-col h-full interactive-element transition-all border-2", cardBorderColor)}>
             <CardHeader className="flex-row items-start gap-4 space-y-0 pb-2">
                 <Avatar className="h-12 w-12">
                 <AvatarImage src={patient.avatarUrl} alt={patient.patientName} data-ai-hint="person portrait" />
@@ -51,14 +51,14 @@ export default function PatientCard({ patient }: PatientCardProps) {
                     <CardTitle className="text-base truncate">{patient.patientName}</CardTitle>
                     <CardDescription className="truncate">{patient.patientId}</CardDescription>
                 </div>
-                <div className="flex flex-col space-y-1 items-center">
+                <div className="flex flex-col space-y-1 items-center pt-1">
                     {hasPaymentDue && (
                        <Tooltip>
                             <TooltipTrigger><AlertTriangle className="h-5 w-5 text-destructive" /></TooltipTrigger>
                             <TooltipContent><p>{locale === 'ar' ? `عليه ${patient.outstandingBalance} ل.س` : `Due: ${patient.outstandingBalance}`}</p></TooltipContent>
                        </Tooltip>
                     )}
-                     {isNearCompletion && (
+                     {isNearCompletion && !isTreatmentCompleted && (
                        <Tooltip>
                             <TooltipTrigger><CheckCircle2 className="h-5 w-5 text-orange-400" /></TooltipTrigger>
                             <TooltipContent><p>{locale === 'ar' ? 'قارب على الانتهاء' : 'Near Completion'}</p></TooltipContent>
@@ -93,3 +93,5 @@ export default function PatientCard({ patient }: PatientCardProps) {
     </TooltipProvider>
   );
 }
+
+    

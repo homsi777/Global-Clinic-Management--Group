@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -90,8 +89,8 @@ export default function FinancialsPage() {
         ))}
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="transactions">
             {locale === 'ar' ? 'سجل المعاملات' : 'Transaction History'}
           </TabsTrigger>
@@ -109,3 +108,5 @@ export default function FinancialsPage() {
     </div>
   );
 }
+
+    

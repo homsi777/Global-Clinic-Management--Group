@@ -15,10 +15,14 @@ import { useLocale } from '@/components/locale-provider';
 import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import type { Transaction } from '@/lib/types';
 
-export default function FinancialsTable() {
-  const { transactions } = useClinicContext();
+
+export default function FinancialsTable({ transactions }: { transactions?: Transaction[] }) {
+  const { transactions: allTransactions } = useClinicContext();
   const { locale } = useLocale();
+  
+  const displayTransactions = transactions || allTransactions;
 
   const typeTranslations = {
     'Payment': { en: 'Payment', ar: 'دفعة' },
@@ -34,16 +38,16 @@ export default function FinancialsTable() {
   return (
     <Card>
        <CardHeader>
-        <CardTitle>{locale === 'ar' ? 'المعاملات' : 'Transactions'}</CardTitle>
-        <CardDescription>{locale === 'ar' ? 'قائمة بجميع المعاملات المالية الأخيرة.' : 'A list of all recent financial transactions.'}</CardDescription>
+        <CardTitle>{locale === 'ar' ? 'سجل المعاملات' : 'Transaction History'}</CardTitle>
+        <CardDescription>{locale === 'ar' ? 'قائمة بالمعاملات المالية الأخيرة.' : 'A list of recent financial transactions.'}</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>{locale === 'ar' ? 'المريض' : 'Patient'}</TableHead>
+              {!transactions && <TableHead>{locale === 'ar' ? 'المريض' : 'Patient'}</TableHead>}
               <TableHead>
-                 <Button variant="ghost">
+                 <Button variant="ghost" className='px-1'>
                     {locale === 'ar' ? 'الحالة' : 'Status'}
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
@@ -51,7 +55,7 @@ export default function FinancialsTable() {
               <TableHead>{locale === 'ar' ? 'الوصف' : 'Description'}</TableHead>
               <TableHead>{locale === 'ar' ? 'النوع' : 'Type'}</TableHead>
               <TableHead>
-                <Button variant="ghost">
+                <Button variant="ghost" className='px-1'>
                   {locale === 'ar' ? 'التاريخ' : 'Date'}
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
@@ -63,12 +67,14 @@ export default function FinancialsTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {transactions.map(tx => (
+            {displayTransactions.map(tx => (
               <TableRow key={tx._id}>
-                <TableCell>
-                  <div className="font-medium">{tx.patientName}</div>
-                  <div className="text-sm text-muted-foreground">{tx.patientId}</div>
-                </TableCell>
+                {!transactions && (
+                    <TableCell>
+                        <div className="font-medium">{tx.patientName}</div>
+                        <div className="text-sm text-muted-foreground">{tx.patientId}</div>
+                    </TableCell>
+                )}
                 <TableCell>
                   <Badge variant={tx.status === 'Paid' ? 'secondary' : 'destructive'} className={tx.status === 'Paid' ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300'}>
                     {statusTranslations[tx.status][locale]}
@@ -111,3 +117,5 @@ export default function FinancialsTable() {
     </Card>
   );
 }
+
+    

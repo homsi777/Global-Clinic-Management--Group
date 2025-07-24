@@ -5,7 +5,7 @@ import { useLocale } from '@/components/locale-provider';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Edit, Phone, Mail, MapPin, Calendar, FileText, BriefcaseMedical, TrendingUp, AlertTriangle, Award } from 'lucide-react';
+import { ArrowLeft, Edit, Phone, Mail, MapPin, Calendar, FileText, BriefcaseMedical, TrendingUp, AlertTriangle, Award, DoorOpen, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 
 
 export default function PatientDetailPage({ params }: { params: { patientId: string } }) {
-  const { getPatientById } = useClinicContext();
+  const { getPatientById, appointments } = useClinicContext();
   const { locale } = useLocale();
   const router = useRouter();
 
@@ -25,6 +25,10 @@ export default function PatientDetailPage({ params }: { params: { patientId: str
     'Final Phase': { en: 'Final Phase', ar: 'المرحلة النهائية' },
     'Retention Phase': { en: 'Retention Phase', ar: 'مرحلة التثبيت' },
   };
+
+  const patientAppointment = appointments.find(
+    (apt) => apt.patientId === patient?.patientId && apt.status === 'InRoom'
+  );
 
   if (!patient) {
     return (
@@ -68,12 +72,23 @@ export default function PatientDetailPage({ params }: { params: { patientId: str
               </div>
             </CardHeader>
             <CardContent>
+                {patientAppointment && (
+                    <div className="mb-4 p-3 rounded-md bg-blue-50 dark:bg-blue-900/30 border border-blue-500/50 flex items-center gap-3">
+                        <DoorOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        <span className="font-semibold text-blue-800 dark:text-blue-200">
+                            {locale === 'ar' ? `حالياً في الغرفة: ${patientAppointment.assignedRoomNumber}` : `Currently in Room: ${patientAppointment.assignedRoomNumber}`}
+                        </span>
+                    </div>
+                )}
                 <div className="space-y-3 text-sm text-muted-foreground">
                     <div className="flex items-center gap-3"><Phone className="h-4 w-4 text-primary" /> <span>{patient.phone}</span></div>
                     <div className="flex items-center gap-3"><Mail className="h-4 w-4 text-primary" /> <span>{patient.email}</span></div>
                     <div className="flex items-center gap-3"><MapPin className="h-4 w-4 text-primary" /> <span>{patient.address}</span></div>
                     <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-primary" /> <span>{locale === 'ar' ? 'تاريخ الميلاد: ' : 'DOB: '} {new Date(patient.dateOfBirth).toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-US')}</span></div>
                 </div>
+                 <Button className="w-full mt-6">
+                    <PlusCircle className="mr-2" /> {locale === 'ar' ? 'حجز موعد جديد' : 'Book New Appointment'}
+                </Button>
             </CardContent>
           </Card>
 
@@ -98,10 +113,10 @@ export default function PatientDetailPage({ params }: { params: { patientId: str
                         </div>
                     </div>
                     <div className="flex items-center gap-2 p-2 bg-secondary rounded-md">
-                         {patient.outstandingBalance > 0 ? <AlertTriangle className="h-5 w-5 text-red-500" /> : <Award className="h-5 w-5 text-green-500" />}
+                         {patient.outstandingBalance > 0 ? <AlertTriangle className="h-5 w-5 text-destructive" /> : <Award className="h-5 w-5 text-green-500" />}
                         <div>
                             <div className="text-muted-foreground">{locale === 'ar' ? 'الحالة المالية' : 'Financials'}</div>
-                            <div className={cn("font-semibold", patient.outstandingBalance > 0 ? 'text-red-500' : 'text-green-500')}>
+                            <div className={cn("font-semibold", patient.outstandingBalance > 0 ? 'text-destructive' : 'text-green-500')}>
                                 {patient.outstandingBalance > 0 ? (locale === 'ar' ? `عليه ${patient.outstandingBalance} ل.س` : `Due ${patient.outstandingBalance}`) : (locale === 'ar' ? 'لا يوجد مستحقات' : 'All Clear')}
                             </div>
                         </div>

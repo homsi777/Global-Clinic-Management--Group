@@ -33,6 +33,7 @@ export default function PatientDetailPage() {
     'Active Treatment': { en: 'Active Treatment', ar: 'علاج فعال' },
     'Final Phase': { en: 'Final Phase', ar: 'المرحلة النهائية' },
     'Retention Phase': { en: 'Retention Phase', ar: 'مرحلة التثبيت' },
+    'Completed': { en: 'Completed', ar: 'مكتمل' }
   };
 
   const patientAppointment = appointments.find(
@@ -198,5 +199,3 @@ export default function PatientDetailPage() {
     </div>
   );
 }
-
-    

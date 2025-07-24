@@ -14,11 +14,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useLocale } from '../locale-provider';
 import { Textarea } from '../ui/textarea';
+import type { Patient } from '@/lib/types';
 
 interface AddEditPatientSheetProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  patient?: any; // To-do: use Patient type
+  patient?: Patient; 
 }
 
 export default function AddEditPatientSheet({
@@ -55,45 +56,45 @@ export default function AddEditPatientSheet({
         <div className="grid gap-4 py-6">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right rtl:text-left">
-              {locale === 'ar' ? 'الاسم' : 'Name'}
+              {locale === 'ar' ? 'الاسم الكامل' : 'Full Name'}
             </Label>
-            <Input id="name" className="col-span-3" />
+            <Input id="name" defaultValue={patient?.patientName} className="col-span-3" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="patientId" className="text-right rtl:text-left">
               {locale === 'ar' ? 'الرقم التعريفي' : 'Patient ID'}
             </Label>
-            <Input id="patientId" className="col-span-3" />
+            <Input id="patientId" defaultValue={patient?.patientId} className="col-span-3" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="dob" className="text-right rtl:text-left">
               {locale === 'ar' ? 'تاريخ الميلاد' : 'Birth Date'}
             </Label>
-            <Input id="dob" type="date" className="col-span-3" />
+            <Input id="dob" type="date" defaultValue={patient?.dateOfBirth} className="col-span-3" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="phone" className="text-right rtl:text-left">
               {locale === 'ar' ? 'الهاتف' : 'Phone'}
             </Label>
-            <Input id="phone" className="col-span-3" />
+            <Input id="phone" defaultValue={patient?.phone} className="col-span-3" />
           </div>
            <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="email" className="text-right rtl:text-left">
               {locale === 'ar' ? 'البريد الإلكتروني' : 'Email'}
             </Label>
-            <Input id="email" type="email" className="col-span-3" />
+            <Input id="email" type="email" defaultValue={patient?.email} className="col-span-3" />
           </div>
            <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="address" className="text-right rtl:text-left">
               {locale === 'ar' ? 'العنوان' : 'Address'}
             </Label>
-            <Input id="address" className="col-span-3" />
+            <Input id="address" defaultValue={patient?.address} className="col-span-3" />
           </div>
            <div className="grid grid-cols-4 items-start gap-4">
             <Label htmlFor="complaint" className="text-right rtl:text-left pt-2">
-              {locale === 'ar' ? 'الشكوى' : 'Complaint'}
+              {locale === 'ar' ? 'الشكوى الرئيسية' : 'Chief Complaint'}
             </Label>
-            <Textarea id="complaint" className="col-span-3" />
+            <Textarea id="complaint" defaultValue={patient?.chiefComplaint} className="col-span-3" />
           </div>
         </div>
         <SheetFooter>

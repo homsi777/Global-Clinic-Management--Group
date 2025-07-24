@@ -5,9 +5,12 @@ import { useLocale } from '@/components/locale-provider';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Edit, Phone, Mail, MapPin, Calendar, GripVertical, FileText, BriefcaseMedical } from 'lucide-react';
+import { ArrowLeft, Edit, Phone, Mail, MapPin, Calendar, FileText, BriefcaseMedical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
+import type { Patient } from '@/lib/types';
+
 
 export default function PatientDetailPage({ params }: { params: { patientId: string } }) {
   const { getPatientById } = useClinicContext();
@@ -16,6 +19,12 @@ export default function PatientDetailPage({ params }: { params: { patientId: str
 
   const patient = getPatientById(params.patientId);
 
+    const statusTranslations: { [key in Patient['currentStatus']]: { en: string, ar: string } } = {
+    'Active Treatment': { en: 'Active Treatment', ar: 'علاج فعال' },
+    'Final Phase': { en: 'Final Phase', ar: 'المرحلة النهائية' },
+    'Retention Phase': { en: 'Retention Phase', ar: 'مرحلة التثبيت' },
+  };
+
   if (!patient) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -23,7 +32,8 @@ export default function PatientDetailPage({ params }: { params: { patientId: str
       </div>
     );
   }
-
+  
+  const currentStatusText = statusTranslations[patient.currentStatus][locale];
   const progressValue = (patient.completedSessions / patient.totalSessions) * 100;
 
 
@@ -79,7 +89,7 @@ export default function PatientDetailPage({ params }: { params: { patientId: str
                     <Progress value={progressValue} />
                 </div>
                 <div className="text-sm">
-                    <p><span className="font-medium text-muted-foreground">{locale === 'ar' ? 'الحالة: ' : 'Status: '}</span>{patient.currentStatus}</p>
+                    <p><span className="font-medium text-muted-foreground">{locale === 'ar' ? 'الحالة: ' : 'Status: '}</span>{currentStatusText}</p>
                     <p><span className="font-medium text-muted-foreground">{locale === 'ar' ? 'تاريخ البدء: ' : 'Start Date: '}</span>{new Date(patient.startDate).toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-US')}</p>
                 </div>
             </CardContent>

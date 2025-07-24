@@ -18,26 +18,24 @@ export default function PatientCard({ patient }: PatientCardProps) {
 
   const progressValue = (patient.completedSessions / patient.totalSessions) * 100;
   
-  const statusColors: { [key: string]: string } = {
+  const statusColors: { [key in Patient['currentStatus']]: string } = {
     'Active Treatment': 'border-l-4 border-l-yellow-500',
     'Final Phase': 'border-l-4 border-l-blue-500',
     'Retention Phase': 'border-l-4 border-l-green-500',
   };
 
-  const statusTranslations: { [key: string]: { [key: string]: string } } = {
+  const statusTranslations: { [key in Patient['currentStatus']]: { en: string, ar: string } } = {
     'Active Treatment': { en: 'Active Treatment', ar: 'علاج فعال' },
     'Final Phase': { en: 'Final Phase', ar: 'المرحلة النهائية' },
     'Retention Phase': { en: 'Retention Phase', ar: 'مرحلة التثبيت' },
   };
 
-  const currentStatusText = statusTranslations[patient.currentStatus]
-    ? statusTranslations[patient.currentStatus][locale]
-    : patient.currentStatus;
+  const currentStatusText = statusTranslations[patient.currentStatus][locale];
 
 
   return (
     <Link href={`/patients/${patient.patientId}`} className="group">
-        <Card className={cn("flex flex-col h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-1", statusColors[patient.currentStatus] || 'border-l-4 border-l-gray-300')}>
+        <Card className={cn("flex flex-col h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-1", statusColors[patient.currentStatus])}>
             <CardHeader className="flex flex-row items-center gap-4 space-y-0">
                 <Avatar className="h-12 w-12">
                 <AvatarImage src={patient.avatarUrl} alt={patient.patientName} data-ai-hint="person portrait" />

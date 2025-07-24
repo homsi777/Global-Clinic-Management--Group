@@ -4,10 +4,10 @@ export interface Patient {
   patientId: string; // Unique ID
   dateOfBirth: string;
   phone: string;
-  email?: string;
-  address?: string;
+  email: string;
+  address: string;
   startDate: string; 
-  currentStatus: string; // e.g., 'Active Treatment', 'Retention Phase'
+  currentStatus: 'Active Treatment' | 'Final Phase' | 'Retention Phase'; // e.g., 'Active Treatment', 'Retention Phase'
   totalSessions: number;
   completedSessions: number;
   chiefComplaint: string;

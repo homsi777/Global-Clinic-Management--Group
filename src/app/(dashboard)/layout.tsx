@@ -45,7 +45,7 @@ export default function DashboardLayout({
               >
                 <Logo className="h-8 w-8 text-primary" />
                 <span className="text-lg font-bold group-data-[collapsible=icon]:hidden">
-                  OrthoFlow
+                  العالمية جروب
                 </span>
               </Link>
             </div>

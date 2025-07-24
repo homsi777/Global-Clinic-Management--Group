@@ -9,8 +9,8 @@ import { LocaleLayout } from "@/components/locale-layout";
 
 
 export const metadata: Metadata = {
-  title: "OrthoFlow Clinic Manager",
-  description: "A complete solution for managing your orthodontic clinic.",
+  title: "العالمية جروب لادارة عيادات",
+  description: "حل متكامل لإدارة عياداتكم.",
 };
 
 export default function RootLayout({

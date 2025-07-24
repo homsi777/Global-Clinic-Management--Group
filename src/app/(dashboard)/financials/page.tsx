@@ -11,10 +11,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FinancialsTable from '@/components/dashboard/financials-table';
 import { useLocale } from '@/components/locale-provider';
-import { Activity, CreditCard, DollarSign } from 'lucide-react';
+import { Activity, CreditCard, DollarSign, PlusCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import AddNewPaymentForm from '@/components/dashboard/add-new-payment-form';
 
 export default function FinancialsPage() {
   const { locale } = useLocale();
+  const [activeTab, setActiveTab] = React.useState('transactions');
 
   const summaryCards = [
     {
@@ -47,8 +50,8 @@ export default function FinancialsPage() {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col gap-6">
+       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
             <h1 className="text-3xl font-bold tracking-tight">
             {locale === 'ar' ? 'المالية والمحاسبة' : 'Financials & Billing'}
@@ -59,6 +62,10 @@ export default function FinancialsPage() {
                 : 'Manage billing, payments, and financial records.'}
             </p>
         </div>
+         <Button onClick={() => setActiveTab('new-payment')}>
+            <PlusCircle className="mr-2" />
+            {locale === 'ar' ? 'إضافة دفعة جديدة' : 'Add New Payment'}
+          </Button>
       </header>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -81,7 +88,37 @@ export default function FinancialsPage() {
           </Card>
         ))}
       </div>
+      
+      <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="transactions">{locale === 'ar' ? 'سجل المعاملات' : 'Transaction History'}</TabsTrigger>
+            <TabsTrigger value="new-payment">{locale === 'ar' ? 'إضافة دفعة جديدة' : 'Add New Payment'}</TabsTrigger>
+      </TabsList>
+      
+      <TabsContent value="transactions">
         <FinancialsTable />
-    </div>
+      </TabsContent>
+      <TabsContent value="new-payment">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <AddNewPaymentForm />
+            <Card>
+                 <CardHeader>
+                    <CardTitle>{locale === 'ar' ? 'التعليمات' : 'Instructions'}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm py-16">
+                        <div className="flex flex-col items-center gap-1 text-center">
+                            <h3 className="text-2xl font-bold tracking-tight">
+                                {locale === 'ar' ? 'مكان الإيصال والمعاينة' : 'Receipt & Preview Area'}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                                {locale === 'ar' ? 'بعد تسجيل الدفعة، ستظهر هنا خيارات طباعة الإيصال أو إرساله.' : 'After recording a payment, options to print or send the receipt will appear here.'}
+                            </p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+      </TabsContent>
+    </Tabs>
   );
 }

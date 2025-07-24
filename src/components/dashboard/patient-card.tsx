@@ -49,6 +49,11 @@ export default function PatientCard({ patient }: PatientCardProps) {
     e.stopPropagation();
   };
 
+  const handleDelete = () => {
+    // In a real app, you'd show a confirmation dialog and then call a function to delete from the DB.
+    alert(`Delete action for ${patient.patientName} triggered. This is a placeholder.`);
+  }
+
   return (
     <>
     <TooltipProvider>
@@ -79,7 +84,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
                   <Edit className="mr-2 h-4 w-4" />
                   <span>{locale === 'ar' ? 'تعديل' : 'Edit'}</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive" onClick={() => alert('Delete action triggered')}>
+                <DropdownMenuItem className="text-destructive" onClick={handleDelete}>
                   <Trash2 className="mr-2 h-4 w-4" />
                   <span>{locale === 'ar' ? 'حذف' : 'Delete'}</span>
                 </DropdownMenuItem>

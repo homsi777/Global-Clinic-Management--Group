@@ -4,8 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { AppProvider } from "@/components/app-provider";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
-import { LocaleProvider, useLocale } from "@/components/locale-provider";
-import { LocaleLayout } from "@/components/locale-layout";
+import { LocaleProvider } from "@/components/locale-provider";
 
 
 export const metadata: Metadata = {
@@ -30,16 +29,14 @@ export default function RootLayout({
           "min-h-screen bg-background font-body antialiased"
         )}
       >
-        <AppProvider>
-          <ThemeProvider>
-            <LocaleProvider>
-              <main>
-                {children}
-              </main>
+        <ThemeProvider>
+          <LocaleProvider>
+            <AppProvider>
+              {children}
               <Toaster />
-            </LocaleProvider>
-          </ThemeProvider>
-        </AppProvider>
+            </AppProvider>
+          </LocaleProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

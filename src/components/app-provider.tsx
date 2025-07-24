@@ -3,9 +3,8 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import type { Patient, Appointment, AppointmentStatus, Transaction, Room, User, UserRole } from '@/lib/types';
-import { mockPatients, mockAppointments, mockTransactions } from '@/lib/data';
-
-const TOTAL_ROOMS = 5;
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db, populate } from '@/lib/db';
 
 const mockUsers: User[] = [
     { _id: 'user-1', name: 'Admin User', role: 'Admin' },
@@ -23,67 +22,63 @@ interface AppContextType {
   currentUser: User;
   setCurrentUser: (user: User) => void;
   users: User[];
+  isLoading: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [patients, setPatients] = useState<Patient[]>(mockPatients);
-  const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments);
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [currentUser, setCurrentUser] = useState<User>(mockUsers[0]);
-
-  // Effect to sync appointments to localStorage for cross-tab communication
+  
+  // Populate DB on initial load
   useEffect(() => {
-    try {
-        localStorage.setItem('appointments', JSON.stringify(appointments));
-    } catch (error) {
-        console.error("Could not write appointments to localStorage", error);
-    }
-  }, [appointments]);
+    populate().catch(err => {
+        console.error("Failed to populate database:", err);
+    });
+  }, []);
 
+  const patients = useLiveQuery(() => db.patients.toArray(), []);
+  const appointments = useLiveQuery(() => db.appointments.toArray(), []);
+  const transactions = useLiveQuery(() => db.transactions.toArray(), []);
+  
+  const isLoading = !patients || !appointments || !transactions;
 
   const getPatientById = (patientId: string) => {
-    return patients.find(p => p.patientId === patientId);
+    return patients?.find(p => p.patientId === patientId);
   };
   
-  const updateAppointmentStatus = (appointmentId: string, status: AppointmentStatus, roomNumber?: number) => {
-    let updatedApt: Appointment | null = null;
-    const newAppointments = appointments.map(apt => {
-        if (apt._id === appointmentId) {
-          updatedApt = {
-            ...apt,
-            status,
-            assignedRoomNumber: roomNumber ?? apt.assignedRoomNumber,
-            calledTime: status === 'InRoom' ? new Date().toISOString() : apt.calledTime,
-            completedTime: status === 'Completed' ? new Date().toISOString() : apt.completedTime,
-          };
-          return updatedApt;
-        }
-        return apt;
-      });
+  const updateAppointmentStatus = async (appointmentId: string, status: AppointmentStatus, roomNumber?: number) => {
+    const appointment = appointments?.find(apt => apt._id === appointmentId);
+    if (!appointment) return;
+    
+    const updates: Partial<Appointment> = {
+        status,
+        assignedRoomNumber: roomNumber ?? appointment.assignedRoomNumber,
+        calledTime: status === 'InRoom' ? new Date().toISOString() : appointment.calledTime,
+        completedTime: status === 'Completed' ? new Date().toISOString() : appointment.completedTime,
+    };
+    
+    await db.appointments.update(appointmentId, updates);
 
-    setAppointments(newAppointments);
-
-    // Use localStorage to sync across tabs
-    try {
-        if (status === 'InRoom' && updatedApt) {
-            localStorage.setItem('currentlyCalled', JSON.stringify(updatedApt));
-        } else {
-            // If another patient is completed, we need to check if they were the one being called
-            const currentlyCalled = JSON.parse(localStorage.getItem('currentlyCalled') || 'null');
-            if (currentlyCalled?._id === appointmentId) {
-                localStorage.removeItem('currentlyCalled');
-            }
+    if (status === 'InRoom') {
+        await db.appState.put({ 
+            id: 'current', 
+            currentCalledPatientId: appointment.patientId,
+            assignedRoomNumber: roomNumber,
+            calledTime: new Date().toISOString()
+        });
+    } else {
+        const currentAppState = await db.appState.get('current');
+        if (currentAppState?.currentCalledPatientId === appointment.patientId) {
+            await db.appState.put({ id: 'current', currentCalledPatientId: null, assignedRoomNumber: null, calledTime: null });
         }
-    } catch (error) {
-        console.error("Could not write to localStorage", error);
     }
   };
 
+  const TOTAL_ROOMS = 5;
   const rooms: Room[] = Array.from({ length: TOTAL_ROOMS }, (_, i) => {
     const roomNumber = i + 1;
-    const occupyingAppointment = appointments.find(
+    const occupyingAppointment = appointments?.find(
       (apt) => apt.status === 'InRoom' && apt.assignedRoomNumber === roomNumber
     );
     const patient = occupyingAppointment ? getPatientById(occupyingAppointment.patientId) : undefined;
@@ -97,16 +92,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   });
 
 
-  const value = {
-    patients,
-    appointments,
-    transactions,
+  const value: AppContextType = {
+    patients: patients || [],
+    appointments: appointments || [],
+    transactions: transactions || [],
     rooms,
     updateAppointmentStatus,
     getPatientById,
     currentUser,
     setCurrentUser,
-    users: mockUsers
+    users: mockUsers,
+    isLoading,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

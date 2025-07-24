@@ -1,13 +1,13 @@
 
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useClinicContext } from '@/components/app-provider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Megaphone, Stethoscope, CheckCircle, Clock, User, Hash, DoorOpen } from 'lucide-react';
+import { Megaphone, Stethoscope, CheckCircle, Clock, Hash, DoorOpen } from 'lucide-react';
 import { announceNextPatient } from '@/ai/flows/announce-next-patient';
 import { useToast } from '@/hooks/use-toast';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -23,9 +23,10 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useLocale } from '@/components/locale-provider';
 import { cn } from '@/lib/utils';
+import { useEffect } from 'react';
 
 export default function PatientQueue() {
-  const { appointments, getPatientById, updateAppointmentStatus, rooms } = useClinicContext();
+  const { appointments, getPatientById, updateAppointmentStatus, rooms, isLoading } = useClinicContext();
   const { toast } = useToast();
   const { locale } = useLocale();
   const [loadingPatientId, setLoadingPatientId] = useState<string | null>(null);
@@ -38,7 +39,8 @@ export default function PatientQueue() {
   , [rooms]);
 
   const sortedAppointments = useMemo(() => {
-    return appointments.sort((a, b) => new Date(a.queueTime).getTime() - new Date(b.queueTime).getTime());
+    if (!appointments) return [];
+    return [...appointments].sort((a, b) => new Date(a.queueTime).getTime() - new Date(b.queueTime).getTime());
   }, [appointments]);
 
   const waitingPatients = sortedAppointments.filter(apt => apt.status === 'Waiting');
@@ -74,8 +76,8 @@ export default function PatientQueue() {
     setIsRoomModalOpen(false);
 
     try {
-      
-      updateAppointmentStatus(appointment._id, 'InRoom', parseInt(roomNumber, 10));
+      // This now updates Dexie, which will trigger updates everywhere
+      await updateAppointmentStatus(appointment._id, 'InRoom', roomNum);
 
        toast({
         title: locale === 'ar' ? 'جاري استدعاء المريض...' : "Calling Patient...",
@@ -85,7 +87,7 @@ export default function PatientQueue() {
       const result = await announceNextPatient({
         patientName: patient.patientName,
         patientId: patient.patientId,
-        roomNumber: parseInt(roomNumber, 10),
+        roomNumber: roomNum,
       });
 
       const audio = new Audio(result.media);
@@ -105,7 +107,8 @@ export default function PatientQueue() {
         title: locale === 'ar' ? 'فشل الإعلان' : "Announcement Failed",
         description: locale === 'ar' ? 'لا يمكن إعلان المريض. يرجى المحاولة مرة أخرى.' : "Could not announce the patient. Please try again.",
       });
-      updateAppointmentStatus(appointment._id, 'Waiting');
+      // Revert status if announcement fails
+      await updateAppointmentStatus(appointment._id, 'Waiting');
     } finally {
       setLoadingPatientId(null);
       setRoomNumber('');
@@ -113,8 +116,8 @@ export default function PatientQueue() {
     }
   };
 
-  const handleComplete = (appointmentId: string) => {
-    updateAppointmentStatus(appointmentId, 'Completed');
+  const handleComplete = async (appointmentId: string) => {
+    await updateAppointmentStatus(appointmentId, 'Completed');
      const appointment = appointments.find(apt => apt._id === appointmentId);
      if(appointment) {
         const patient = getPatientById(appointment.patientId);
@@ -146,7 +149,7 @@ export default function PatientQueue() {
         };
     
         calculateWaitTime();
-        const interval = setInterval(calculateWaitTime, 60000); // Update every minute
+        const interval = setInterval(calculateWaitTime, 60000);
     
         return () => clearInterval(interval);
     }, [appointment, locale]);
@@ -218,6 +221,10 @@ export default function PatientQueue() {
       </motion.div>
     );
   };
+  
+  if (isLoading) {
+    return <div>{locale === 'ar' ? 'جاري تحميل البيانات...' : 'Loading data...'}</div>;
+  }
 
   return (
     <>

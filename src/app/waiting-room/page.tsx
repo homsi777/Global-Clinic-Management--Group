@@ -1,125 +1,24 @@
 
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
-import { useClinicContext } from '@/components/app-provider';
+import React, { useEffect, useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '@/lib/db';
+import type { Appointment, Patient } from '@/lib/types';
 import { Logo } from '@/components/icons/logo';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Hash, DoorOpen, Clock, Users, UserCheck, UserX } from 'lucide-react';
-import type { Patient, Appointment } from '@/lib/types';
+import { Hash, DoorOpen, Clock, Users, UserCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
+const PatientListItem = ({ appointment }: { appointment: Appointment }) => {
+    const patient = useLiveQuery(() => db.patients.where('patientId').equals(appointment.patientId).first(), [appointment.patientId]);
 
-interface DisplayData {
-  name: string;
-  id: string;
-  room: number;
-  calledTime: string;
-}
-
-export default function WaitingRoomPage() {
-  const { getPatientById } = useClinicContext();
-  const [currentlyCalled, setCurrentlyCalled] = useState<Appointment | null>(null);
-  const [displayData, setDisplayData] = useState<DisplayData | null>(null);
-  const [currentTime, setCurrentTime] = useState('');
-  const [sessionTimer, setSessionTimer] = useState('00:00');
-  const [isPulsing, setIsPulsing] = useState(false);
-  const [waitingList, setWaitingList] = useState<Appointment[]>([]);
-  const [inRoomList, setInRoomList] = useState<Appointment[]>([]);
-  
-  // Force a reload every 3 seconds to ensure data is always fresh.
-  // This is a robust way to solve the synchronization issue.
-  useEffect(() => {
-    const timer = setInterval(() => {
-        // Only reload if no modal or specific interaction is happening.
-        // For now, we always reload to keep it simple and reliable.
-        location.reload();
-    }, 3000); // Refresh every 3 seconds
-
-    return () => clearInterval(timer);
-  }, []);
-
-
-  const updateStateFromLocalStorage = useCallback(() => {
-    try {
-        const storedCall = localStorage.getItem('currentlyCalled');
-        const storedAppointments = localStorage.getItem('appointments');
-        
-        const allApts: Appointment[] = storedAppointments ? JSON.parse(storedAppointments) : [];
-        const newCurrentlyCalled: Appointment | null = storedCall ? JSON.parse(storedCall) : null;
-        
-        setCurrentlyCalled(newCurrentlyCalled);
-        setWaitingList(allApts.filter((apt: Appointment) => apt.status === 'Waiting'));
-        setInRoomList(allApts.filter((apt: Appointment) => apt.status === 'InRoom'));
-
-    } catch (error) {
-        console.error("Error reading from localStorage", error);
-    }
-  }, []);
-
-  useEffect(() => {
-    // Initial load from local storage
-    updateStateFromLocalStorage();
-
-    // Set client time
-    const updateClientTime = () => {
-      setCurrentTime(new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }));
-    };
-    updateClientTime();
-    const timer = setInterval(updateClientTime, 1000);
-    
-    return () => clearInterval(timer);
-  }, [updateStateFromLocalStorage]);
-
-
-  useEffect(() => {
-    let timerInterval: NodeJS.Timeout | null = null;
-
-    if (currentlyCalled) {
-      const calledPatient = getPatientById(currentlyCalled.patientId);
-      if (calledPatient && currentlyCalled.assignedRoomNumber && currentlyCalled.calledTime) {
-        setDisplayData({
-            name: calledPatient.patientName,
-            id: calledPatient.patientId,
-            room: currentlyCalled.assignedRoomNumber,
-            calledTime: currentlyCalled.calledTime,
-        });
-
-        setIsPulsing(true);
-        setTimeout(() => setIsPulsing(false), 7000); 
-
-        const startTime = new Date(currentlyCalled.calledTime).getTime();
-        timerInterval = setInterval(() => {
-            const now = new Date().getTime();
-            const diff = now - startTime;
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-            setSessionTimer(
-                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-            );
-        }, 1000);
-      }
-    } else {
-        setDisplayData(null);
-    }
-
-    return () => {
-        if (timerInterval) {
-            clearInterval(timerInterval);
-        }
-        setSessionTimer('00:00');
-    }
-  }, [currentlyCalled, getPatientById]);
-
-  const PatientListItem = ({ appointment }: { appointment: Appointment }) => {
-    const patient = getPatientById(appointment.patientId);
     if (!patient) return null;
 
     const statusConfig = {
         'Waiting': { color: 'bg-orange-100 border-orange-500', icon: <UserCheck className="h-4 w-4 text-orange-600" />, text: 'ينتظر' },
         'InRoom': { color: 'bg-green-100 border-green-500', icon: <DoorOpen className="h-4 w-4 text-green-600" />, text: `في غرفة ${appointment.assignedRoomNumber}` },
-        'NotArrived': { color: 'bg-red-100 border-red-500', icon: <UserX className="h-4 w-4 text-red-600" />, text: 'لم يحضر' }
     };
     
     const currentStatus = appointment.status === 'InRoom' ? 'InRoom' : 'Waiting';
@@ -143,6 +42,62 @@ export default function WaitingRoomPage() {
     );
   };
 
+
+export default function WaitingRoomPage() {
+  const [currentTime, setCurrentTime] = useState('');
+  const [sessionTimer, setSessionTimer] = useState('00:00');
+  const [isPulsing, setIsPulsing] = useState(false);
+
+  // Live query for the application state (currently called patient)
+  const appState = useLiveQuery(() => db.appState.get('current'), []);
+  
+  // Live query for the patient being called
+  const calledPatient = useLiveQuery(
+    () => appState?.currentCalledPatientId ? db.patients.where('patientId').equals(appState.currentCalledPatientId).first() : Promise.resolve(undefined),
+    [appState?.currentCalledPatientId]
+  );
+  
+  // Live query for waiting and in-room lists
+  const waitingList = useLiveQuery(() => db.appointments.where('status').equals('Waiting').sortBy('queueTime'), []);
+  const inRoomList = useLiveQuery(() => db.appointments.where('status').equals('InRoom').sortBy('queueTime'), []);
+
+  // Update client time every second
+  useEffect(() => {
+    const updateClientTime = () => {
+      setCurrentTime(new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }));
+    };
+    updateClientTime();
+    const timer = setInterval(updateClientTime, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Effect for pulsing animation and session timer
+  useEffect(() => {
+    let timerInterval: NodeJS.Timeout | null = null;
+
+    if (calledPatient && appState?.calledTime) {
+      setIsPulsing(true);
+      const pulseTimeout = setTimeout(() => setIsPulsing(false), 7000);
+
+      const startTime = new Date(appState.calledTime).getTime();
+      timerInterval = setInterval(() => {
+        const now = new Date().getTime();
+        const diff = now - startTime;
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        setSessionTimer(
+            `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+        );
+      }, 1000);
+      
+      return () => {
+        if (timerInterval) clearInterval(timerInterval);
+        clearTimeout(pulseTimeout);
+        setSessionTimer('00:00');
+      }
+    }
+  }, [calledPatient, appState?.calledTime]);
+  
   return (
     <div className="flex h-screen w-full bg-gray-100 dark:bg-gray-900 font-arabic" dir="rtl">
       <div className="flex flex-col w-full">
@@ -160,9 +115,9 @@ export default function WaitingRoomPage() {
         <div className="flex flex-1 overflow-hidden">
             <main className="flex-1 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-gray-50 to-gray-200 dark:from-gray-900 dark:to-gray-800">
             <AnimatePresence mode="wait">
-            {displayData ? (
+            {calledPatient && appState?.assignedRoomNumber ? (
                 <motion.div
-                    key={displayData.id}
+                    key={calledPatient._id}
                     initial={{ opacity: 0, scale: 0.7, y: 50 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.8, y: -50 }}
@@ -174,21 +129,21 @@ export default function WaitingRoomPage() {
                 >
                     <p className="text-4xl font-medium text-gray-600 dark:text-gray-400">الدور الحالي لـ</p>
                     <h2 className="my-4 text-8xl font-bold text-primary tracking-tight">
-                    {displayData.name}
+                    {calledPatient.patientName}
                     </h2>
                     <div className="mt-10 flex justify-center divide-x-2 divide-gray-200 dark:divide-gray-700 rtl:divide-x-reverse">
                     <div className="px-8 flex items-center gap-4">
                         <Hash className="h-12 w-12 text-gray-500 dark:text-gray-400" />
                         <div>
                             <p className="text-2xl text-gray-500 dark:text-gray-400">رقم المريض</p>
-                            <p className="text-5xl font-semibold text-gray-800 dark:text-gray-200">{displayData.id}</p>
+                            <p className="text-5xl font-semibold text-gray-800 dark:text-gray-200">{calledPatient.patientId}</p>
                         </div>
                     </div>
                     <div className="px-8 flex items-center gap-4">
                         <DoorOpen className="h-12 w-12 text-gray-500 dark:text-gray-400" />
                         <div>
                             <p className="text-2xl text-gray-500 dark:text-gray-400">يرجى التوجه إلى</p>
-                            <p className="text-5xl font-semibold text-gray-800 dark:text-gray-200">غرفة {displayData.room}</p>
+                            <p className="text-5xl font-semibold text-gray-800 dark:text-gray-200">غرفة {appState.assignedRoomNumber}</p>
                         </div>
                     </div>
                     </div>
@@ -221,10 +176,10 @@ export default function WaitingRoomPage() {
                     قائمة الانتظار
                 </h3>
                 <AnimatePresence>
-                    {inRoomList.map(apt => <PatientListItem key={apt._id} appointment={apt} />)}
-                    {waitingList.map(apt => <PatientListItem key={apt._id} appointment={apt} />)}
+                    {inRoomList?.map(apt => <PatientListItem key={apt._id} appointment={apt} />)}
+                    {waitingList?.map(apt => <PatientListItem key={apt._id} appointment={apt} />)}
                 </AnimatePresence>
-                {waitingList.length === 0 && inRoomList.length === 0 && (
+                {(waitingList?.length === 0 && inRoomList?.length === 0) && (
                     <p className="text-sm text-muted-foreground text-center pt-8">لا يوجد مرضى في قائمة الانتظار حالياً.</p>
                 )}
             </aside>
@@ -232,5 +187,4 @@ export default function WaitingRoomPage() {
       </div>
     </div>
   );
-
-    
+}

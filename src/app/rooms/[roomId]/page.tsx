@@ -57,7 +57,7 @@ export default function RoomDetailPage() {
         })
     };
 
-    if (isLoading || !room) {
+    if (isLoading) {
         return (
             <div className="flex items-center justify-center h-screen">
                 <p className="text-muted-foreground">{locale === 'ar' ? 'جاري تحميل بيانات الغرفة...' : 'Loading room data...'}</p>
@@ -65,6 +65,19 @@ export default function RoomDetailPage() {
         );
     }
     
+    // **THE FIX**: Handle the case where the room is not found after loading is complete.
+    if (!room) {
+        return (
+             <div className="flex flex-col items-center justify-center h-screen">
+                <p className="text-2xl font-bold text-destructive">{locale === 'ar' ? 'الغرفة غير موجودة' : 'Room Not Found'}</p>
+                <p className="text-muted-foreground">{locale === 'ar' ? `لم يتم العثور على غرفة بالمعرف: ${roomId}` : `Could not find a room with ID: ${roomId}`}</p>
+                 <Button onClick={() => window.close()} className="mt-4">
+                     {locale === 'ar' ? 'إغلاق' : 'Close'}
+                </Button>
+            </div>
+        );
+    }
+
     const roomStatusText = {
         Available: { ar: 'متاحة', en: 'Available', color: 'text-green-500' },
         Assigned: { ar: 'مخصصة', en: 'Assigned', color: 'text-orange-500' },

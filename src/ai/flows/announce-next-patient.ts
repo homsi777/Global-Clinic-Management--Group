@@ -35,8 +35,8 @@ const announceNextPatientFlow = ai.defineFlow(
     outputSchema: AnnounceNextPatientOutputSchema,
   },
   async input => {
-    // Construct the announcement text, repeating it three times.
-    const announcementText = `Announcing patient ${input.patientName}, patient ID ${input.patientId}, please proceed to room number ${input.roomNumber}. `.repeat(3);
+    // Construct the announcement text in Arabic, repeating it three times.
+    const announcementText = `المريض ${input.patientName}, رقم الهوية ${input.patientId}, يرجى التوجه إلى الغرفة رقم ${input.roomNumber}. `.repeat(3);
 
     const {media} = await ai.generate({
       model: 'googleai/gemini-2.5-flash-preview-tts',

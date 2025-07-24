@@ -5,12 +5,13 @@ import { useLocale } from '@/components/locale-provider';
 import { useRouter, useParams } from 'next/navigation';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Edit, Phone, Mail, MapPin, Calendar, FileText, BriefcaseMedical, TrendingUp, AlertTriangle, Award, DoorOpen, PlusCircle, CreditCard } from 'lucide-react';
+import { ArrowLeft, Edit, Phone, Mail, MapPin, Calendar, FileText, BriefcaseMedical, TrendingUp, AlertTriangle, Award, DoorOpen, PlusCircle, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import type { Patient } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
 
 
 export default function PatientDetailPage() {
@@ -92,9 +93,11 @@ export default function PatientDetailPage() {
                     <Button>
                         <PlusCircle className="mr-2" /> {locale === 'ar' ? 'حجز موعد جديد' : 'Book New Appointment'}
                     </Button>
-                     <Button variant="outline">
-                        <CreditCard className="mr-2" /> {locale === 'ar' ? 'إضافة دفعة جديدة' : 'Add New Payment'}
-                    </Button>
+                    <Link href="/financials" className='w-full'>
+                        <Button variant="outline" className='w-full'>
+                            <DollarSign className="mr-2" /> {locale === 'ar' ? 'إضافة دفعة جديدة' : 'Add New Payment'}
+                        </Button>
+                    </Link>
                 </div>
             </CardContent>
           </Card>

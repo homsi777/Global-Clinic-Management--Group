@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Users, MonitorPlay, Settings, CreditCard, Moon, Sun, Globe, FileText, ShoppingCart, User } from 'lucide-react';
+import { Home, Users, MonitorPlay, Settings, DollarSign, Moon, Sun, Globe, FileText, ShoppingCart, User } from 'lucide-react';
 import { Logo } from '@/components/icons/logo';
 import {
   SidebarProvider,
@@ -41,7 +41,7 @@ export default function DashboardLayout({
   const navItems = [
       { href: '/', icon: <Home />, label: 'Dashboard', labelAr: 'الشاشة الرئيسية', roles: ['Admin', 'Nurse', 'DoctorAssistant'] as UserRole[] },
       { href: '/patients', icon: <Users />, label: 'Patients', labelAr: 'المرضى', roles: ['Admin', 'Nurse', 'DoctorAssistant'] as UserRole[] },
-      { href: '/financials', icon: <CreditCard />, label: 'Financials', labelAr: 'المالية', roles: ['Admin'] as UserRole[] },
+      { href: '/financials', icon: <DollarSign />, label: 'Financials', labelAr: 'المالية', roles: ['Admin'] as UserRole[] },
       { href: '/reports', icon: <FileText />, label: 'Reports', labelAr: 'التقارير', roles: ['Admin', 'DoctorAssistant'] as UserRole[] },
       { href: '/expenses', icon: <ShoppingCart />, label: 'Expenses', labelAr: 'المصاريف', roles: ['Admin'] as UserRole[] },
       { href: '/waiting-room', icon: <MonitorPlay />, label: 'Waiting Room', labelAr: 'شاشة الانتظار', target: '_blank', roles: ['Admin', 'Nurse'] as UserRole[] },
@@ -51,7 +51,7 @@ export default function DashboardLayout({
 
 
   return (
-    <div dir={locale === 'ar' ? 'rtl' : 'ltr'} className={cn("bg-background", locale === 'ar' && 'font-arabic')}>
+    <div dir={locale === 'ar' ? 'rtl' : 'ltr'} className={cn("bg-background text-foreground", locale === 'ar' && 'font-arabic')}>
       <SidebarProvider>
         <Sidebar variant="sidebar" collapsible="icon" side={locale === 'ar' ? 'right' : 'left'}>
           <SidebarInset>

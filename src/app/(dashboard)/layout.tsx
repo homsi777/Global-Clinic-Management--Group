@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Users, MonitorPlay, Settings, DollarSign, Moon, Sun, Globe, FileText, Receipt, User, CalendarClock } from 'lucide-react';
+import { Home, Users, MonitorPlay, Settings, DollarSign, Moon, Sun, Globe, FileText, Receipt, User, CalendarClock, DoorClosed } from 'lucide-react';
 import { Logo } from '@/components/icons/logo';
 import {
   SidebarProvider,
@@ -32,10 +32,10 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isActive = (path: string) => pathname === path;
+  const isActive = (path: string) => pathname.startsWith(path) && (path !== '/' || pathname === '/');
   const { theme, setTheme } = useTheme();
   const { locale, setLocale } = useLocale();
-  const { currentUser, users, setCurrentUser } = useClinicContext();
+  const { currentUser, users, setCurrentUser, rooms } = useClinicContext();
 
 
   const navItems = [
@@ -47,8 +47,18 @@ export default function DashboardLayout({
       { href: '/expenses', icon: <Receipt />, label: 'Expenses', labelAr: 'المصاريف', roles: ['Admin'] as UserRole[] },
       { href: '/waiting-room', icon: <MonitorPlay />, label: 'Waiting Room', labelAr: 'شاشة الانتظار', target: '_blank', roles: ['Admin', 'Nurse'] as UserRole[] },
   ]
+  
+  const roomItems = rooms.map(room => ({
+      href: `/rooms/${room._id}`,
+      icon: <DoorClosed />,
+      label: `Room ${room.roomNumber}`,
+      labelAr: `غرفة ${room.roomNumber}`,
+      target: '_blank',
+      roles: ['Admin', 'DoctorAssistant'] as UserRole[]
+  }))
 
   const visibleNavItems = navItems.filter(item => item.roles.includes(currentUser.role));
+  const visibleRoomItems = roomItems.filter(item => item.roles.includes(currentUser.role));
 
 
   return (
@@ -86,6 +96,31 @@ export default function DashboardLayout({
                       </SidebarMenuItem>
                   ))}
               </SidebarMenu>
+              {visibleRoomItems.length > 0 && (
+                <>
+                <SidebarMenu>
+                     <SidebarMenuItem>
+                          <div className="px-4 py-2 text-xs font-semibold text-muted-foreground group-data-[collapsible=icon]:hidden">
+                            {locale === 'ar' ? 'غرف الأطباء' : 'Doctor Rooms'}
+                          </div>
+                      </SidebarMenuItem>
+                  {visibleRoomItems.map((item) => (
+                      <SidebarMenuItem key={item.href}>
+                          <SidebarMenuButton
+                          asChild
+                          isActive={isActive(item.href)}
+                          tooltip={{ children: locale === 'ar' ? item.labelAr : item.label }}
+                          >
+                          <Link href={item.href} target={item.target || '_self'}>
+                              {item.icon}
+                              <span>{locale === 'ar' ? item.labelAr : item.label}</span>
+                          </Link>
+                          </SidebarMenuButton>
+                      </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+                </>
+              )}
             </SidebarContent>
             <SidebarFooter className="items-center justify-center group-data-[collapsible=icon]:gap-4">
               <div className="flex w-full flex-col gap-2 group-data-[collapsible=icon]:items-center">

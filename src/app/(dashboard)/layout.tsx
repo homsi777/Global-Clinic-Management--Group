@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Users, MonitorPlay, Settings, CreditCard } from 'lucide-react';
+import { Home, Users, MonitorPlay, Settings, CreditCard, Moon, Sun, Globe } from 'lucide-react';
 import { Logo } from '@/components/icons/logo';
 import {
   SidebarProvider,
@@ -18,6 +18,10 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import { useTheme } from '@/components/theme-provider';
+import { useLocale } from '@/components/locale-provider';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
 
 export default function DashboardLayout({
   children,
@@ -26,6 +30,8 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const isActive = (path: string) => pathname === path;
+  const { theme, setTheme } = useTheme();
+  const { locale, setLocale } = useLocale();
 
   return (
     <SidebarProvider>
@@ -98,6 +104,36 @@ export default function DashboardLayout({
           </SidebarContent>
           <SidebarFooter className="items-center justify-center group-data-[collapsible=icon]:gap-4">
              <div className="flex w-full flex-col gap-2 group-data-[collapsible=icon]:items-center">
+              <div className="flex w-full gap-2 group-data-[collapsible=icon]:flex-col">
+                 <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  >
+                    {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
+                    <span className="group-data-[collapsible=icon]:hidden">
+                      {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                    </span>
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-full">
+                        <Globe className="size-4" />
+                         <span className="group-data-[collapsible=icon]:hidden">{locale.toUpperCase()}</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setLocale('en')}>
+                        English
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setLocale('ar')}>
+                        العربية
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+              </div>
+
               <Button variant="outline" size="sm" className="w-full">
                 <Settings className="size-4" />
                 <span className="group-data-[collapsible=icon]:hidden">Settings</span>

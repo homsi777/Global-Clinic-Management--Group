@@ -53,7 +53,7 @@ export default function FinancialsTable() {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right font-medium">
-                  ${tx.amount.toFixed(2)}
+                  SYP {tx.amount.toFixed(2)}
                 </TableCell>
               </TableRow>
             ))}

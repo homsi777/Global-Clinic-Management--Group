@@ -15,25 +15,18 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { BarChart, CartesianGrid, XAxis, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
 import { useClinicContext } from '@/components/app-provider';
 import type { Patient } from '@/lib/types';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '@/lib/db';
+import { subMonths, format, startOfMonth, endOfMonth } from 'date-fns';
 
-
-// Sample data for charts
-const chartData = [
-  { month: 'January', total: Math.floor(Math.random() * 5000) + 1000 },
-  { month: 'February', total: Math.floor(Math.random() * 5000) + 1000 },
-  { month: 'March', total: Math.floor(Math.random() * 5000) + 1000 },
-  { month: 'April', total: Math.floor(Math.random() * 5000) + 1000 },
-  { month: 'May', total: Math.floor(Math.random() * 5000) + 1000 },
-  { month: 'June', total: Math.floor(Math.random() * 5000) + 1000 },
-];
 
 const chartConfig = {
-  desktop: {
-    label: 'Desktop',
+  revenue: {
+    label: 'Revenue',
     color: 'hsl(var(--chart-1))',
   },
-  mobile: {
-    label: 'Mobile',
+  patients: {
+    label: 'Patients',
     color: 'hsl(var(--chart-2))',
   },
 };
@@ -42,6 +35,29 @@ const chartConfig = {
 export default function ReportsPage() {
   const { locale } = useLocale();
   const { patients } = useClinicContext();
+
+  const monthlyRevenueData = useLiveQuery(async () => {
+    const data = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+        const targetMonth = subMonths(now, i);
+        const monthStart = startOfMonth(targetMonth).getTime();
+        const monthEnd = endOfMonth(targetMonth).getTime();
+
+        const transactions = await db.transactions
+            .where('date').between(monthStart, monthEnd)
+            .and(tx => tx.type === 'Payment')
+            .toArray();
+        
+        const total = transactions.reduce((sum, tx) => sum + tx.amount, 0);
+        
+        data.push({
+            month: format(targetMonth, 'MMM'),
+            total: total
+        });
+    }
+    return data;
+  }, []);
 
   const statusTranslations: { [key in Patient['currentStatus']]: { en: string, ar: string } } = {
     'Active Treatment': { en: 'Active Treatment', ar: 'علاج فعال' },
@@ -74,6 +90,7 @@ export default function ReportsPage() {
         <Card>
             <CardHeader>
                 <CardTitle>{locale === 'ar' ? 'توزيع حالات المرضى' : 'Patient Status Distribution'}</CardTitle>
+                <CardDescription>{locale === 'ar' ? 'يعرض هذا المخطط توزيع المرضى الحاليين حسب حالة علاجهم.' : 'This chart shows the distribution of current patients by their treatment status.'}</CardDescription>
             </CardHeader>
             <CardContent>
                 <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
@@ -92,22 +109,27 @@ export default function ReportsPage() {
 
         <Card>
             <CardHeader>
-                <CardTitle>{locale === 'ar' ? 'الإيرادات الشهرية (نموذج)' : 'Monthly Revenue (Sample)'}</CardTitle>
-                <CardDescription>{locale === 'ar' ? 'يناير - يونيو 2024' : 'January - June 2024'}</CardDescription>
+                <CardTitle>{locale === 'ar' ? 'الإيرادات الشهرية' : 'Monthly Revenue'}</CardTitle>
+                <CardDescription>{locale === 'ar' ? 'إجمالي الإيرادات (المدفوعات) خلال آخر 6 أشهر.' : 'Total revenue (payments) over the last 6 months.'}</CardDescription>
             </CardHeader>
             <CardContent>
                 <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-                <BarChart data={chartData}>
+                <BarChart data={monthlyRevenueData}>
                     <CartesianGrid vertical={false} />
                     <XAxis
-                    dataKey="month"
-                    tickLine={false}
-                    tickMargin={10}
-                    axisLine={false}
-                    tickFormatter={(value) => value.slice(0, 3)}
+                      dataKey="month"
+                      tickLine={false}
+                      tickMargin={10}
+                      axisLine={false}
                     />
-                    <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                    <Bar dataKey="total" fill="var(--color-desktop)" radius={4} />
+                    <ChartTooltip 
+                        cursor={false}
+                        content={<ChartTooltipContent 
+                            hideLabel 
+                            formatter={(value) => locale === 'ar' ? `${Number(value).toFixed(2)} ل.س` : `SYP ${Number(value).toFixed(2)}`}
+                        />} 
+                    />
+                    <Bar dataKey="total" fill="var(--color-revenue)" radius={4} />
                 </BarChart>
                 </ChartContainer>
             </CardContent>

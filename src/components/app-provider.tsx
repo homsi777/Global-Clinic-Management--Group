@@ -51,8 +51,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
           };
           if (status === 'InRoom') {
             setCurrentlyCalled(updatedApt);
+            // Use localStorage to sync across tabs
+            localStorage.setItem('currentlyCalled', JSON.stringify(updatedApt));
+
           } else if (status === 'Completed' && currentlyCalled?._id === appointmentId) {
-            // Optional: Clear currentlyCalled or move to next logic
+             localStorage.removeItem('currentlyCalled');
           }
           return updatedApt;
         }

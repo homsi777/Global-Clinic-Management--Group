@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useClinicContext } from '@/components/app-provider';
 import { Logo } from '@/components/icons/logo';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Hash, DoorOpen, Clock } from 'lucide-react';
-import type { Patient } from '@/lib/types';
+import type { Patient, Appointment } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 
@@ -17,7 +17,8 @@ interface DisplayData {
 }
 
 export default function WaitingRoomPage() {
-  const { currentlyCalled, getPatientById } = useClinicContext();
+  const { getPatientById } = useClinicContext();
+  const [currentlyCalled, setCurrentlyCalled] = useState<Appointment | null>(null);
   const [displayData, setDisplayData] = useState<DisplayData | null>(null);
   const [currentTime, setCurrentTime] = useState('');
   const [sessionTimer, setSessionTimer] = useState('00:00');
@@ -31,6 +32,30 @@ export default function WaitingRoomPage() {
     const timer = setInterval(updateClientTime, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const handleStorageChange = useCallback((event: StorageEvent) => {
+    if (event.key === 'currentlyCalled') {
+        if (event.newValue) {
+            setCurrentlyCalled(JSON.parse(event.newValue));
+        } else {
+            setCurrentlyCalled(null);
+        }
+    }
+  }, []);
+
+  useEffect(() => {
+    // Initial load from localStorage
+    const storedCall = localStorage.getItem('currentlyCalled');
+    if (storedCall) {
+        setCurrentlyCalled(JSON.parse(storedCall));
+    }
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [handleStorageChange]);
+
 
   useEffect(() => {
     let timerInterval: NodeJS.Timeout | null = null;

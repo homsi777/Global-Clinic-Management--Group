@@ -19,6 +19,7 @@ interface AppContextType {
   rooms: Room[];
   updateAppointmentStatus: (appointmentId: string, status: AppointmentStatus, roomNumber?: number) => void;
   getPatientById: (patientId: string) => Patient | undefined;
+  deletePatient: (patientId: string) => Promise<void>;
   currentUser: User;
   setCurrentUser: (user: User) => void;
   users: User[];
@@ -48,6 +49,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return patients.find(p => p.patientId === patientId);
   };
   
+  const deletePatient = async (patientId: string) => {
+    const patientToDelete = await db.patients.get({ patientId });
+    if (!patientToDelete) return;
+
+    // Use a transaction to ensure all or nothing is deleted
+    await db.transaction('rw', db.patients, db.appointments, db.transactions, async () => {
+        // Delete patient
+        await db.patients.where('patientId').equals(patientId).delete();
+        // Delete associated appointments
+        await db.appointments.where('patientId').equals(patientId).delete();
+        // Delete associated transactions
+        await db.transactions.where('patientId').equals(patientId).delete();
+    });
+  };
+
   const updateAppointmentStatus = async (appointmentId: string, status: AppointmentStatus, roomNumber?: number) => {
     const appointment = appointments?.find(apt => apt._id === appointmentId);
     if (!appointment) return;
@@ -100,6 +116,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     rooms,
     updateAppointmentStatus,
     getPatientById,
+    deletePatient,
     currentUser,
     setCurrentUser,
     users: mockUsers,

@@ -53,13 +53,13 @@ export default function DashboardLayout({
   return (
     <div dir={locale === 'ar' ? 'rtl' : 'ltr'} className={cn(locale === 'ar' && 'font-arabic')}>
       <SidebarProvider>
-        <Sidebar>
+        <Sidebar variant="sidebar" collapsible="icon">
           <SidebarInset>
             <SidebarHeader>
-              <div className="flex h-10 items-center gap-2">
+              <div className="flex h-14 items-center justify-center group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:justify-center">
                 <Link
                   href="/"
-                  className="flex items-center gap-2 font-semibold text-primary"
+                  className="flex items-center gap-2 font-semibold"
                 >
                   <Logo className="h-8 w-8 text-primary" />
                   <span className="text-lg font-bold group-data-[collapsible=icon]:hidden">
@@ -90,7 +90,7 @@ export default function DashboardLayout({
               <div className="flex w-full flex-col gap-2 group-data-[collapsible=icon]:items-center">
                   <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="w-full">
+                        <Button variant="ghost" size="sm" className="w-full justify-start">
                           <User className="size-4" />
                           <span className="group-data-[collapsible=icon]:hidden">{currentUser.name}</span>
                         </Button>
@@ -108,19 +108,19 @@ export default function DashboardLayout({
 
                 <div className="flex w-full gap-2 group-data-[collapsible=icon]:flex-col">
                   <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
-                      className="w-full"
+                      className="w-full justify-start"
                       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                     >
                       {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
                       <span className="group-data-[collapsible=icon]:hidden">
-                        {locale === 'ar' ? (theme === 'dark' ? 'وضع فاتح' : 'وضع داكن') : (theme === 'dark' ? 'Light Mode' : 'Dark Mode')}
+                        {locale === 'ar' ? (theme === 'dark' ? 'فاتح' : 'داكن') : (theme === 'dark' ? 'Light' : 'Dark')}
                       </span>
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="w-full">
+                        <Button variant="ghost" size="sm" className="w-full justify-start">
                           <Globe className="size-4" />
                           <span className="group-data-[collapsible=icon]:hidden">{locale.toUpperCase()}</span>
                         </Button>
@@ -137,7 +137,7 @@ export default function DashboardLayout({
                 </div>
 
                 <Link href="/settings" className="w-full">
-                  <Button variant="outline" size="sm" className="w-full">
+                  <Button variant="ghost" size="sm" className="w-full justify-start">
                       <Settings className="size-4" />
                       <span className="group-data-[collapsible=icon]:hidden">
                           {locale === 'ar' ? 'الإعدادات' : 'Settings'}
@@ -148,7 +148,7 @@ export default function DashboardLayout({
               <SidebarTrigger className="self-end justify-self-end group-data-[collapsible=icon]:self-center group-data-[collapsible=icon]:justify-self-center [&_svg]:size-5" />
             </SidebarFooter>
           </SidebarInset>
-          <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
+          <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">{children}</main>
         </Sidebar>
       </SidebarProvider>
     </div>

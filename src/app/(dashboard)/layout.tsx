@@ -53,7 +53,7 @@ export default function DashboardLayout({
   return (
     <div dir={locale === 'ar' ? 'rtl' : 'ltr'} className={cn(locale === 'ar' && 'font-arabic')}>
       <SidebarProvider>
-        <Sidebar variant="sidebar" collapsible="icon">
+        <Sidebar variant="sidebar" collapsible="icon" side={locale === 'ar' ? 'right' : 'left'}>
           <SidebarInset>
             <SidebarHeader>
               <div className="flex h-14 items-center justify-center group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:justify-center">
@@ -148,8 +148,10 @@ export default function DashboardLayout({
               <SidebarTrigger className="self-end justify-self-end group-data-[collapsible=icon]:self-center group-data-[collapsible=icon]:justify-self-center [&_svg]:size-5" />
             </SidebarFooter>
           </SidebarInset>
-          <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">{children}</main>
         </Sidebar>
+        <main className="flex flex-1 flex-col overflow-auto p-4 md:p-6 lg:p-8">
+            {children}
+        </main>
       </SidebarProvider>
     </div>
   );
